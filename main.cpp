@@ -3,1180 +3,839 @@
 #include <vector>
 #include <string>
 #include <iomanip>
-#include <ctime>
 #include <limits>
 #include <algorithm>
-#include <sstream>
-#include <map>
-#include <cctype>  // For password validation
+#include <ctime>
 
 using namespace std;
 
-// ANSI Color codes for enhanced UI
-namespace Color {
-    const string RESET      = "\033[0m";
-    const string BLACK      = "\033[30m";
-    const string RED        = "\033[31m";
-    const string GREEN      = "\033[32m";
-    const string YELLOW     = "\033[33m";
-    const string BLUE       = "\033[34m";
-    const string MAGENTA    = "\033[35m";
-    const string CYAN       = "\033[36m";
-    const string WHITE      = "\033[37m";
-    const string BOLD       = "\033[1m";
-    const string UNDERLINE  = "\033[4m";
-    const string BG_BLACK   = "\033[40m";
-    const string BG_RED     = "\033[41m";
-    const string BG_GREEN   = "\033[42m";
-    const string BG_YELLOW  = "\033[43m";
-    const string BG_BLUE    = "\033[44m";
-    const string BG_MAGENTA = "\033[45m";
-    const string BG_CYAN    = "\033[46m";
-    const string BG_WHITE   = "\033[47m";
-}
-
-// Utility functions
-string getCurrentDate() {
-    time_t now = time(0);
-    tm* localTime = localtime(&now);
-
-    char buffer[11];
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d", localTime);
-    return string(buffer);
-}
-
-string getCurrentDateTime() {
-    time_t now = time(0);
-    tm* localTime = localtime(&now);
-
-    char buffer[20];
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localTime);
-    return string(buffer);
-}
-
-void splitString(const string& str, vector<string>& tokens, char delimiter) {
-    size_t start = 0;
-    size_t end = str.find(delimiter);
-
-    while (end != string::npos) {
-        tokens.push_back(str.substr(start, end - start));
-        start = end + 1;
-        end = str.find(delimiter, start);
-    }
-
-    tokens.push_back(str.substr(start));
-}
-
-void displayHeader(const string& title) {
-    cout << "\n" << Color::BG_BLUE << Color::WHITE << Color::BOLD;
-    cout << " " << string(title.length() + 8, ' ') << " ";
-    cout << Color::RESET << endl;
-
-    cout << Color::BG_BLUE << Color::WHITE << Color::BOLD;
-    cout << "    " << title << "    ";
-    cout << Color::RESET << endl;
-
-    cout << Color::BG_BLUE << Color::WHITE << Color::BOLD;
-    cout << " " << string(title.length() + 8, ' ') << " ";
-    cout << Color::RESET << endl;
-}
-
-void displayDivider() {
-    cout << Color::CYAN << string(70, '-') << Color::RESET << endl;
-}
-
-void clearScreen() {
-    #ifdef _WIN32
-        system("cls");
-    #else
-        system("clear");
-    #endif
-}
-
-// User class for authentication
-class User {
+// Date class for transaction dates
+class Date {
 private:
-    string username;
-    string password;
-    string fullName;
-    string email;
-    string registrationDate;
-    string lastLogin;
+    int day;
+    int month;
+    int year;
 
 public:
-    User(const string& username = "", const string& password = "",
-         const string& fullName = "", const string& email = "")
-        : username(username), password(password), fullName(fullName), email(email) {
-        registrationDate = getCurrentDateTime();
-        lastLogin = registrationDate;
+    // Default constructor uses current date
+    Date() {
+        time_t now = time(0);
+        tm* ltm = localtime(&now);
+        day = ltm->tm_mday;
+        month = 1 + ltm->tm_mon;
+        year = 1900 + ltm->tm_year;
     }
 
-    // Getters
-    string getUsername() const { return username; }
-    string getPassword() const { return password; }
-    string getFullName() const { return fullName; }
-    string getEmail() const { return email; }
-    string getRegistrationDate() const { return registrationDate; }
-    string getLastLogin() const { return lastLogin; }
+    // Overloaded constructor - function overloading example
+    Date(int d, int m, int y) : day(d), month(m), year(y) {}
 
-    // Setters
-    void setPassword(const string& newPassword) { password = newPassword; }
-    void setFullName(const string& newFullName) { fullName = newFullName; }
-    void setEmail(const string& newEmail) { email = newEmail; }
-    void updateLastLogin() { lastLogin = getCurrentDateTime(); }
-
-    // Convert user data to string for file storage
-    string toString() const {
-        return username + "," + password + "," + fullName + "," + email + "," +
-               registrationDate + "," + lastLogin;
-    }
-
-    // Parse user data from string
-    static User fromString(const string& str) {
-        vector<string> tokens;
-        splitString(str, tokens, ',');
-
-        if (tokens.size() < 6) {
-            return User(); // Return empty user if format is invalid
+    // Overloaded constructor from string - function overloading example
+    Date(const string& dateStr) {
+        try {
+            size_t pos1 = dateStr.find('/');
+            size_t pos2 = dateStr.find('/', pos1 + 1);
+            
+            day = stoi(dateStr.substr(0, pos1));
+            month = stoi(dateStr.substr(pos1 + 1, pos2 - pos1 - 1));
+            year = stoi(dateStr.substr(pos2 + 1));
+        } catch (...) {
+            // Default to current date on error
+            *this = Date();
         }
+    }
 
-        User user(tokens[0], tokens[1], tokens[2], tokens[3]);
-        user.registrationDate = tokens[4];
-        user.lastLogin = tokens[5];
-
-        return user;
+    string toString() const {
+        return to_string(day) + "/" + to_string(month) + "/" + to_string(year);
     }
 };
 
-// User Manager class for handling authentication and user management
-class UserManager {
+// Record types
+enum class RecordType {
+    INCOME,
+    EXPENSE
+};
+
+// Base class for transactions (inheritance)
+class Transaction {
+protected:
+    string description;
+    double amount;
+    string category;
+    Date transactionDate;
+
+public:
+    // Constructor with default date - function overloading example
+    Transaction(string desc, double amt, string cat)
+        : description(desc), amount(amt), category(cat), transactionDate() {}
+
+    // Overloaded constructor with custom date - function overloading example
+    Transaction(string desc, double amt, string cat, const Date& date)
+        : description(desc), amount(amt), category(cat), transactionDate(date) {}
+
+    virtual void display() const = 0; // Pure virtual function for polymorphism
+
+    // Overloaded display with formatting option - function overloading example
+    virtual void display(bool detailed) const = 0;
+
+    virtual string getFileFormat() const = 0; // Pure virtual for file saving
+
+    // Getters
+    string getDescription() const { return description; }
+    double getAmount() const { return amount; }
+    string getCategory() const { return category; }
+    Date getDate() const { return transactionDate; }
+
+    virtual ~Transaction() = default; // Virtual destructor for proper cleanup
+};
+
+// Derived class for records
+class Record : public Transaction {
 private:
-    map<string, User> users;
-    string currentUsername;
-    string usersFilename;
+    RecordType type;
+    int id;
+    static int nextId; // Static member to track IDs
 
-    bool isValidUsername(const string& username) const {
-        // Username must be at least 4 characters, alphanumeric with underscores
-        if (username.length() < 4) {
-            return false;
-        }
-
-        for (char c : username) {
-            if (!isalnum(c) && c != '_') {
-                return false;
-            }
-        }
-
-        return true;
+public:
+    // Constructor with default date - function overloading example
+    Record(RecordType t, string desc, double amt, string cat)
+        : Transaction(desc, amt, cat), type(t) {
+        id = nextId++;
     }
 
-    bool isStrongPassword(const string& password) const {
-        // Password must be at least 6 characters with at least one number
-        if (password.length() < 6) {
-            return false;
-        }
+    // Overloaded constructor with custom date - function overloading example
+    Record(RecordType t, string desc, double amt, string cat, const Date& date)
+        : Transaction(desc, amt, cat, date), type(t) {
+        id = nextId++;
+    }
 
-        bool hasDigit = false;
-        for (char c : password) {
-            if (isdigit(c)) {
-                hasDigit = true;
+    // Display method implementation
+    void display() const override {
+        display(false); // Default to non-detailed display
+    }
+
+    // Overloaded display with formatting option - function overloading example
+    void display(bool detailed) const override {
+        string typeStr = (type == RecordType::INCOME) ? "INCOME" : "EXPENSE";
+        
+        cout << "[" << id << "] " << typeStr << ": " << description 
+             << " | $" << fixed << setprecision(2) << amount 
+             << " | Category: " << category;
+        
+        if (detailed) {
+            cout << " | Date: " << transactionDate.toString();
+        }
+        cout << endl;
+    }
+
+    string getFileFormat() const override {
+        string typeStr = (type == RecordType::INCOME) ? "Income" : "Expense";
+        return to_string(id) + "," + typeStr + "," + description + "," + 
+               to_string(amount) + "," + category + "," + transactionDate.toString();
+    }
+
+    static Record fromFile(const string& line) {
+        vector<string> parts;
+        size_t start = 0, end = 0;
+        
+        // Split the line by commas
+        while ((end = line.find(',', start)) != string::npos) {
+            parts.push_back(line.substr(start, end - start));
+            start = end + 1;
+        }
+        parts.push_back(line.substr(start)); // Last part
+        
+        if (parts.size() < 6) return Record(RecordType::EXPENSE, "", 0, "");
+        
+        int recordId = stoi(parts[0]);
+        string typeStr = parts[1];
+        string desc = parts[2];
+        double amt = stod(parts[3]);
+        string cat = parts[4];
+        Date date(parts[5]);
+        
+        RecordType type = (typeStr == "Income") ? RecordType::INCOME : RecordType::EXPENSE;
+        
+        // Set the next ID if this one is higher
+        if (recordId >= nextId) {
+            nextId = recordId + 1;
+        }
+        
+        return Record(type, desc, amt, cat, date);
+    }
+
+    bool isIncome() const { return type == RecordType::INCOME; }
+    int getId() const { return id; }
+};
+
+// Initialize static member
+int Record::nextId = 1;
+
+// Budget class for budget management
+class Budget {
+private:
+    string category;
+    double limit;
+    double spent;
+
+public:
+    // Constructor - function overloading example
+    Budget(string cat, double lim) : category(cat), limit(lim), spent(0.0) {}
+    
+    // Overloaded constructor with initial spent amount - function overloading example
+    Budget(string cat, double lim, double initialSpent) 
+        : category(cat), limit(lim), spent(initialSpent) {}
+
+    void addExpense(double amount) {
+        spent += amount;
+    }
+
+    // Display budget info
+    void display() const {
+        double remaining = limit - spent;
+        double percentUsed = (spent / limit) * 100;
+        
+        cout << "Budget: " << category 
+             << " | Limit: $" << fixed << setprecision(2) << limit
+             << " | Spent: $" << spent
+             << " | Remaining: $" << remaining
+             << " | " << setprecision(1) << percentUsed << "% used" << endl;
+    }
+
+    string getCategory() const { return category; }
+    double getLimit() const { return limit; }
+    double getSpent() const { return spent; }
+    double getRemaining() const { return limit - spent; }
+
+    string getFileFormat() const {
+        return category + "," + to_string(limit) + "," + to_string(spent);
+    }
+
+    static Budget fromFile(const string& line) {
+        vector<string> parts;
+        size_t start = 0, end = 0;
+        
+        // Split the line by commas
+        while ((end = line.find(',', start)) != string::npos) {
+            parts.push_back(line.substr(start, end - start));
+            start = end + 1;
+        }
+        parts.push_back(line.substr(start)); // Last part
+        
+        if (parts.size() < 3) return Budget("Other", 0.0);
+        
+        string cat = parts[0];
+        double lim = stod(parts[1]);
+        double spent = stod(parts[2]);
+        
+        return Budget(cat, lim, spent);
+    }
+};
+
+// Finance manager class to handle all operations
+class FinanceManager {
+private:
+    vector<Record> records;
+    vector<Budget> budgets;
+    double totalIncome = 0.0;
+    double totalExpenses = 0.0;
+
+    // Common income categories
+    vector<string> incomeCategories = {
+        "Salary", "Business", "Investment", "Gift", "Other"
+    };
+
+    // Common expense categories
+    vector<string> expenseCategories = {
+        "Food", "Housing", "Transportation", "Entertainment", "Shopping", 
+        "Utilities", "Healthcare", "Education", "Personal", "Other"
+    };
+
+public:
+    FinanceManager() {
+        // Initialize default budgets
+        for (const auto& cat : expenseCategories) {
+            budgets.push_back(Budget(cat, 1000.0)); // Default limit
+        }
+    }
+
+    // Add record - function overloading example
+    void addRecord(const Record& record) {
+        records.push_back(record);
+        
+        if (record.isIncome()) {
+            totalIncome += record.getAmount();
+        } else {
+            totalExpenses += record.getAmount();
+            // Update corresponding budget
+            updateBudget(record.getCategory(), record.getAmount());
+        }
+    }
+
+    // Overloaded search method - function overloading example
+    void searchRecords(const string& keyword) const {
+        cout << "\n=== Search Results for \"" << keyword << "\" ===\n";
+        
+        bool found = false;
+        for (const auto& record : records) {
+            if (record.getDescription().find(keyword) != string::npos || 
+                record.getCategory().find(keyword) != string::npos) {
+                record.display(true);
+                found = true;
+            }
+        }
+        
+        if (!found) {
+            cout << "No matching records found.\n";
+        }
+    }
+
+    // Overloaded search method by date - function overloading example
+    void searchRecords(const Date& date) const {
+        cout << "\n=== Search Results for date " << date.toString() << " ===\n";
+        
+        bool found = false;
+        for (const auto& record : records) {
+            if (record.getDate().toString() == date.toString()) {
+                record.display(true);
+                found = true;
+            }
+        }
+        
+        if (!found) {
+            cout << "No matching records found.\n";
+        }
+    }
+
+    // Overloaded search method by ID - function overloading example
+    void searchRecords(int id) const {
+        cout << "\n=== Search Results for ID " << id << " ===\n";
+        
+        bool found = false;
+        for (const auto& record : records) {
+            if (record.getId() == id) {
+                record.display(true);
+                found = true;
                 break;
             }
         }
-
-        return hasDigit;
+        
+        if (!found) {
+            cout << "No record with ID " << id << " found.\n";
+        }
     }
 
-public:
-    UserManager(const string& usersFilename = "users.csv")
-        : usersFilename(usersFilename), currentUsername("") {
-        loadUsers();
+    // Update budget when expense is added
+    void updateBudget(const string& category, double amount) {
+        for (auto& budget : budgets) {
+            if (budget.getCategory() == category) {
+                budget.addExpense(amount);
+                return;
+            }
+        }
     }
 
-    // Load users from file
-    void loadUsers() {
-        ifstream file(usersFilename);
-        if (!file) {
-            // Create default admin user if file doesn't exist
-            User admin("admin", "admin123", "Administrator", "admin@financeflare.com");
-            users["admin"] = admin;
-            saveUsers();
+    // Display all records
+    void displayRecords() const {
+        cout << "\n=== Financial Records ===\n";
+        
+        if (records.empty()) {
+            cout << "No records found.\n";
             return;
         }
 
-        string line;
-        while (getline(file, line)) {
-            User user = User::fromString(line);
-            if (!user.getUsername().empty()) {
-                users[user.getUsername()] = user;
-            }
+        for (const auto& record : records) {
+            record.display(true); // Display with details
         }
-
-        file.close();
+        
+        cout << "\nTotal Income: $" << fixed << setprecision(2) << totalIncome << endl;
+        cout << "Total Expenses: $" << fixed << setprecision(2) << totalExpenses << endl;
+        cout << "Balance: $" << fixed << setprecision(2) << (totalIncome - totalExpenses) << endl;
     }
 
-    // Save users to file
-    void saveUsers() const {
-        ofstream file(usersFilename);
-        if (!file) {
-            cout << Color::RED << "✗ " << Color::BOLD << "Error: Unable to save user data." << Color::RESET << endl;
+    // Display budgets
+    void displayBudgets() const {
+        cout << "\n=== Budget Status ===\n";
+        
+        if (budgets.empty()) {
+            cout << "No budgets set up.\n";
             return;
         }
 
-        for (const auto& pair : users) {
-            file << pair.second.toString() << endl;
+        for (const auto& budget : budgets) {
+            budget.display();
         }
-
-        file.close();
     }
 
-    // Check if a username exists
-    bool usernameExists(const string& username) const {
-        return users.find(username) != users.end();
+    // Set budget for category
+    void setBudget(const string& category, double limit) {
+        for (auto& budget : budgets) {
+            if (budget.getCategory() == category) {
+                double spent = budget.getSpent();
+                budgets.erase(remove_if(budgets.begin(), budgets.end(),
+                    [&category](const Budget& b) { return b.getCategory() == category; }), 
+                    budgets.end());
+                budgets.push_back(Budget(category, limit, spent));
+                return;
+            }
+        }
+        
+        // If we get here, category wasn't found
+        budgets.push_back(Budget(category, limit));
     }
 
-    // Register a new user
-    bool registerUser() {
-        clearScreen();
-        displayHeader("Create New Account");
-
-        string username, password, confirmPassword, fullName, email;
-
-        // Get username
-        bool validUsername = false;
-        while (!validUsername) {
-            cout << "\n" << Color::YELLOW << "► " << Color::RESET << "Enter username (min 4 characters, alphanumeric): ";
-            getline(cin, username);
-
-            if (!isValidUsername(username)) {
-                cout << Color::RED << "✗ Invalid username. Use at least 4 alphanumeric characters or underscore." << Color::RESET << endl;
-                continue;
-            }
-
-            if (usernameExists(username)) {
-                cout << Color::RED << "✗ Username already exists. Please choose another one." << Color::RESET << endl;
-                continue;
-            }
-
-            validUsername = true;
+    void suggestInvestments() const {
+        double balance = totalIncome - totalExpenses;
+        
+        if (balance <= 0) {
+            cout << "\nYou currently don't have a positive balance for investment.\n";
+            return;
         }
-
-        // Get password
-        bool validPassword = false;
-        while (!validPassword) {
-            cout << Color::YELLOW << "► " << Color::RESET << "Enter password (min 6 characters, include at least 1 number): ";
-            getline(cin, password);
-
-            if (!isStrongPassword(password)) {
-                cout << Color::RED << "✗ Password too weak. Use at least 6 characters including at least 1 number." << Color::RESET << endl;
-                continue;
-            }
-
-            cout << Color::YELLOW << "► " << Color::RESET << "Confirm password: ";
-            getline(cin, confirmPassword);
-
-            if (password != confirmPassword) {
-                cout << Color::RED << "✗ Passwords don't match. Please try again." << Color::RESET << endl;
-                continue;
-            }
-
-            validPassword = true;
+        
+        cout << "\n=== Investment Suggestions ===\n";
+        
+        // Basic investment suggestions
+        if (balance < 1000) {
+            cout << "Emergency Fund: $" << fixed << setprecision(2) << (balance * 0.8) << endl;
+            cout << "Low-risk Investment: $" << fixed << setprecision(2) << (balance * 0.2) << endl;
+        } else {
+            cout << "Emergency Fund: $" << fixed << setprecision(2) << (balance * 0.5) << endl;
+            cout << "Low-risk Investment: $" << fixed << setprecision(2) << (balance * 0.3) << endl;
+            cout << "Medium-risk Investment: $" << fixed << setprecision(2) << (balance * 0.2) << endl;
         }
-
-        // Get full name
-        cout << Color::YELLOW << "► " << Color::RESET << "Enter your full name: ";
-        getline(cin, fullName);
-
-        // Get email
-        cout << Color::YELLOW << "► " << Color::RESET << "Enter your email: ";
-        getline(cin, email);
-
-        // Create and store the new user
-        User newUser(username, password, fullName, email);
-        users[username] = newUser;
-        saveUsers();
-
-        cout << "\n" << Color::GREEN << "✓ " << Color::BOLD << "Account created successfully!" << Color::RESET << endl;
-        cout << Color::YELLOW << "► " << Color::RESET << "You can now log in with your credentials." << endl;
-
-        cout << "\n" << Color::MAGENTA << "Press Enter to continue..." << Color::RESET;
-        cin.get();
-
-        return true;
     }
 
-    // Authenticate a user
-    bool login() {
-        clearScreen();
-        displayHeader("User Login");
+    // Save all data to files
+    void saveData() const {
+        // Save records
+        ofstream recordFile("finance_records.txt");
+        if (!recordFile) {
+            cout << "Error: Could not open file for saving records.\n";
+            return;
+        }
+        
+        for (const auto& record : records) {
+            recordFile << record.getFileFormat() << endl;
+        }
+        recordFile.close();
+        
+        // Save budgets
+        ofstream budgetFile("finance_budgets.txt");
+        if (!budgetFile) {
+            cout << "Error: Could not open file for saving budgets.\n";
+            return;
+        }
+        
+        for (const auto& budget : budgets) {
+            budgetFile << budget.getFileFormat() << endl;
+        }
+        budgetFile.close();
+        
+        cout << "Data saved successfully!\n";
+    }
 
-        string username, password;
-        int attempts = 0;
-        const int maxAttempts = 3;
-
-        while (attempts < maxAttempts) {
-            if (attempts > 0) {
-                cout << Color::YELLOW << "⚠ " << Color::RESET << "Attempt " << attempts + 1 << " of " << maxAttempts << endl;
+    // Load all data from files
+    void loadData() {
+        // Load records
+        ifstream recordFile("finance_records.txt");
+        if (recordFile) {
+            records.clear();
+            totalIncome = totalExpenses = 0.0;
+            
+            string line;
+            while (getline(recordFile, line)) {
+                Record record = Record::fromFile(line);
+                addRecord(record);
             }
+            recordFile.close();
+        } else {
+            cout << "No existing records file found.\n";
+        }
+        
+        // Load budgets
+        ifstream budgetFile("finance_budgets.txt");
+        if (budgetFile) {
+            budgets.clear();
+            
+            string line;
+            while (getline(budgetFile, line)) {
+                Budget budget = Budget::fromFile(line);
+                budgets.push_back(budget);
+            }
+            budgetFile.close();
+        } else {
+            cout << "No existing budgets file found.\n";
+        }
+        
+        cout << "Data loaded successfully!\n";
+    }
 
-            cout << "\n" << Color::YELLOW << "► " << Color::RESET << "Username: ";
-            getline(cin, username);
+    void displaySummary() const {
+        cout << "\n=== Financial Summary ===\n";
+        cout << "Total Income: $" << fixed << setprecision(2) << totalIncome << endl;
+        cout << "Total Expenses: $" << fixed << setprecision(2) << totalExpenses << endl;
+        cout << "Current Balance: $" << fixed << setprecision(2) << (totalIncome - totalExpenses) << endl;
+        
+        if (totalIncome > 0) {
+            double savingsRate = ((totalIncome - totalExpenses) / totalIncome) * 100;
+            cout << "Savings Rate: " << fixed << setprecision(2) << savingsRate << "%" << endl;
+        }
+    }
 
-            cout << Color::YELLOW << "► " << Color::RESET << "Password: ";
-            getline(cin, password);
-
-            if (usernameExists(username) && users[username].getPassword() == password) {
-                users[username].updateLastLogin();
-                saveUsers();
-
-                currentUsername = username;
-
-                cout << "\n" << Color::GREEN << "✓ " << Color::BOLD << "Login successful!" << Color::RESET << endl;
-                cout << Color::CYAN << "Welcome back, " << users[username].getFullName() << "!" << Color::RESET << endl;
-
-                cout << "\n" << Color::MAGENTA << "Press Enter to continue..." << Color::RESET;
-                cin.get();
-
-                return true;
-            } else {
-                cout << "\n" << Color::RED << "✗ " << Color::BOLD << "Invalid username or password." << Color::RESET << endl;
-                attempts++;
-
-                if (attempts < maxAttempts) {
-                    cout << "Please try again." << endl;
+    void displayCategoryBreakdown() const {
+        if (records.empty()) {
+            cout << "No records to analyze.\n";
+            return;
+        }
+        
+        // Count expenses by category
+        cout << "\n=== Expense Categories ===\n";
+        for (const auto& cat : expenseCategories) {
+            double total = 0.0;
+            for (const auto& record : records) {
+                if (!record.isIncome() && record.getCategory() == cat) {
+                    total += record.getAmount();
                 }
             }
+            
+            if (total > 0) {
+                double percentage = (total / totalExpenses) * 100;
+                cout << cat << ": $" << fixed << setprecision(2) << total 
+                     << " (" << fixed << setprecision(1) << percentage << "%)" << endl;
+            }
         }
-
-        cout << "\n" << Color::RED << "✗ " << Color::BOLD << "Too many failed attempts. Please try again later." << Color::RESET << endl;
-
-        cout << "\n" << Color::MAGENTA << "Press Enter to continue..." << Color::RESET;
-        cin.get();
-
-        return false;
     }
 
-    // Logout current user
-    void logout() {
-        currentUsername = "";
+    const vector<string>& getIncomeCategories() const {
+        return incomeCategories;
     }
 
-    // Get the current user
-    User getCurrentUser() const {
-        if (currentUsername.empty() || !usernameExists(currentUsername)) {
-            return User();
-        }
-        return users.at(currentUsername);
-    }
-
-    // Check if a user is logged in
-    bool isLoggedIn() const {
-        return !currentUsername.empty();
-    }
-
-    // Display the authentication menu
-    int displayAuthMenu() const {
-        clearScreen();
-
-        cout << Color::CYAN << "\n";
-        cout << " ╔═══════════════════════════════════════════════════╗\n";
-        cout << " ║                                                   ║\n";
-        cout << " ║  " << Color::BOLD << Color::YELLOW << "███████╗██╗███╗   ██╗ █████╗ ███╗   ██╗ ██████╗███████╗" << Color::CYAN << "  ║\n";
-        cout << " ║  " << Color::BOLD << Color::YELLOW << "██╔════╝██║████╗  ██║██╔══██╗████╗  ██║██╔════╝██╔════╝" << Color::CYAN << "  ║\n";
-        cout << " ║  " << Color::BOLD << Color::YELLOW << "█████╗  ██║██╔██╗ ██║███████║██╔██╗ ██║██║     █████╗  " << Color::CYAN << "  ║\n";
-        cout << " ║  " << Color::BOLD << Color::YELLOW << "██╔══╝  ██║██║╚██╗██║██╔══██║██║╚██╗██║██║     ██╔══╝  " << Color::CYAN << "  ║\n";
-        cout << " ║  " << Color::BOLD << Color::YELLOW << "██║     ██║██║ ╚████║██║  ██║██║ ╚████║╚██████╗███████╗" << Color::CYAN << "  ║\n";
-        cout << " ║  " << Color::BOLD << Color::YELLOW << "╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚══════╝" << Color::CYAN << "  ║\n";
-        cout << " ║                     " << Color::BOLD << Color::GREEN << "FLARE" << Color::CYAN << "                      ║\n";
-        cout << " ║                                                   ║\n";
-        cout << " ╚═══════════════════════════════════════════════════╝\n";
-        cout << Color::RESET << "\n";
-
-        cout << Color::GREEN << " Personal Finance Management System" << Color::RESET << "\n";
-        cout << Color::YELLOW << " Current Date: " << Color::CYAN << getCurrentDate() << Color::RESET << "\n\n";
-
-        cout << Color::BG_CYAN << Color::BLACK << Color::BOLD << " LOGIN MENU " << Color::RESET << "\n\n";
-
-        cout << Color::YELLOW << " [1] " << Color::RESET << Color::CYAN << "Login" << Color::RESET << "\n";
-        cout << Color::YELLOW << " [2] " << Color::RESET << Color::GREEN << "Create New Account" << Color::RESET << "\n";
-        cout << Color::YELLOW << " [3] " << Color::RESET << Color::RED << "Exit" << Color::RESET << "\n";
-
-        cout << "\n" << Color::YELLOW << "► " << Color::RESET << "Enter your choice (1-3): ";
-
-        int choice;
-        cin >> choice;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-        return choice;
+    const vector<string>& getExpenseCategories() const {
+        return expenseCategories;
     }
 };
 
-// Abstract base class for all financial records (demonstrates abstraction)
-class Record {
-protected:
-    string date;
-    double amount;
-    string description;
-
-public:
-    // Constructor
-    Record(const string& date = "", double amount = 0.0, const string& description = "")
-        : date(date), amount(amount), description(description) {}
-
-    // Virtual destructor for proper cleanup in inheritance hierarchy
-    virtual ~Record() {}
-
-    // Getters and setters (encapsulation)
-    string getDate() const { return date; }
-    double getAmount() const { return amount; }
-    string getDescription() const { return description; }
-
-    void setDate(const string& date) { this->date = date; }
-    void setAmount(double amount) { this->amount = amount; }
-    void setDescription(const string& description) { this->description = description; }
-
-    // Pure virtual functions (polymorphism)
-    virtual void display() const = 0;
-    virtual string getType() const = 0;
-    virtual string toFileString() const = 0;
-    virtual string getColoredAmount() const = 0;
-
-    // Function overloading example
-    void update(const string& date) { this->date = date; }
-    void update(double amount) { this->amount = amount; }
-    void update(const string& date, double amount, const string& description) {
-        this->date = date;
-        this->amount = amount;
-        this->description = description;
-    }
-};
-
-// Expense class derived from Record
-class Expense : public Record {
+// User interface class
+class FinanceUI {
 private:
-    string category;
+    FinanceManager manager;
 
-public:
-    // Constructor
-    Expense(const string& date = "", double amount = 0.0,
-            const string& description = "", const string& category = "")
-        : Record(date, amount, description), category(category) {}
-
-    // Getters and setters
-    string getCategory() const { return category; }
-    void setCategory(const string& category) { this->category = category; }
-
-    // Implementation of pure virtual functions
-    void display() const override {
-        cout << Color::CYAN << left << setw(12) << date << Color::RESET
-             << left << setw(20) << description
-             << Color::YELLOW << setw(15) << category << Color::RESET
-             << right << setw(10) << getColoredAmount() << endl;
+    void clearScreen() {
+        cout << string(50, '\n');
     }
 
-    string getType() const override { return "EXPENSE"; }
-
-    string toFileString() const override {
-        return getType() + "," + date + "," + to_string(amount) + "," + description + "," + category;
+    // Get string input - function overloading example
+    string getInput() {
+        string input;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        getline(cin, input);
+        return input;
     }
 
-    string getColoredAmount() const override {
-        stringstream ss;
-        ss << Color::RED << "-$" << fixed << setprecision(2) << amount << Color::RESET;
-        return ss.str();
-    }
-
-    // Function overloading
-    void update(const string& category) { this->category = category; }
-    void update(const string& date, double amount, const string& description, const string& category) {
-        Record::update(date, amount, description);
-        this->category = category;
-    }
-};
-
-// Income class derived from Record
-class Income : public Record {
-private:
-    string source;
-
-public:
-    // Constructor
-    Income(const string& date = "", double amount = 0.0,
-           const string& description = "", const string& source = "")
-        : Record(date, amount, description), source(source) {}
-
-    // Getters and setters
-    string getSource() const { return source; }
-    void setSource(const string& source) { this->source = source; }
-
-    // Implementation of pure virtual functions
-    void display() const override {
-        cout << Color::CYAN << left << setw(12) << date << Color::RESET
-             << left << setw(20) << description
-             << Color::MAGENTA << setw(15) << source << Color::RESET
-             << right << setw(10) << getColoredAmount() << endl;
-    }
-
-    string getType() const override { return "INCOME"; }
-
-    string toFileString() const override {
-        return getType() + "," + date + "," + to_string(amount) + "," + description + "," + source;
-    }
-
-    string getColoredAmount() const override {
-        stringstream ss;
-        ss << Color::GREEN << "+$" << fixed << setprecision(2) << amount << Color::RESET;
-        return ss.str();
-    }
-
-    // Function overloading
-    void update(const string& source) { this->source = source; }
-    void update(const string& date, double amount, const string& description, const string& source) {
-        Record::update(date, amount, description);
-        this->source = source;
-    }
-};
-
-// Investment class
-class Investment {
-private:
-    string name;
-    string type;
-    double expectedReturn;
-    double riskLevel; // 1-10 scale
-    double minInvestment;
-
-public:
-    // Constructor
-    Investment(const string& name = "", const string& type = "",
-               double expectedReturn = 0.0, double riskLevel = 1.0, double minInvestment = 0.0)
-        : name(name), type(type), expectedReturn(expectedReturn),
-          riskLevel(riskLevel), minInvestment(minInvestment) {}
-
-    // Getters
-    string getName() const { return name; }
-    string getType() const { return type; }
-    double getExpectedReturn() const { return expectedReturn; }
-    double getRiskLevel() const { return riskLevel; }
-    double getMinInvestment() const { return minInvestment; }
-
-    // Display method
-    void display() const {
-        cout << Color::BOLD << Color::CYAN << left << setw(20) << name << Color::RESET
-             << Color::BLUE << setw(15) << type << Color::RESET;
-
-        // Color-code return rates
-        cout << right << setw(8);
-        double returnPercentage = expectedReturn * 100;
-        if (returnPercentage > 15) {
-            cout << Color::GREEN << Color::BOLD;
-        } else if (returnPercentage > 7) {
-            cout << Color::YELLOW;
-        } else {
-            cout << Color::WHITE;
-        }
-        cout << fixed << setprecision(2) << returnPercentage << "%" << Color::RESET;
-
-        // Color-code risk levels
-        cout << right << setw(7);
-        if (riskLevel >= 8) {
-            cout << Color::RED << Color::BOLD;
-        } else if (riskLevel >= 5) {
-            cout << Color::YELLOW;
-        } else {
-            cout << Color::GREEN;
-        }
-        cout << fixed << setprecision(1) << riskLevel << "/10" << Color::RESET;
-
-        cout << setw(15) << fixed << setprecision(2) << "$" << minInvestment << endl;
-    }
-
-    // Calculate potential returns
-    double calculatePotentialReturn(double investment) const {
-        return investment * expectedReturn;
-    }
-
-    // Function overloading
-    bool isSuitableFor(double availableAmount) const {
-        return availableAmount >= minInvestment;
-    }
-
-    bool isSuitableFor(double availableAmount, double maxRisk) const {
-        return availableAmount >= minInvestment && riskLevel <= maxRisk;
-    }
-};
-
-// Financial Manager class - acts as a controller
-class FinanceManager {
-private:
-    vector<Record*> records;
-    vector<Investment> investments;
-    string dataFilename;
-    string username;
-
-    // Helper methods
-    double getTotalIncome() const {
-        double total = 0.0;
-        for (const auto& record : records) {
-            if (record->getType() == "INCOME") {
-                total += record->getAmount();
+    // Get double input with validation - function overloading example
+    double getInput(const string& prompt) {
+        double value;
+        bool valid = false;
+        
+        while (!valid) {
+            cout << prompt;
+            if (cin >> value) {
+                valid = true;
+            } else {
+                cout << "Invalid input. Please enter a number.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
             }
         }
-        return total;
+        
+        return value;
     }
 
-    double getTotalExpenses() const {
-        double total = 0.0;
-        for (const auto& record : records) {
-            if (record->getType() == "EXPENSE") {
-                total += record->getAmount();
+    // Get integer input with validation - function overloading example
+    int getInput(int min, int max) {
+        int value;
+        bool valid = false;
+        
+        while (!valid) {
+            if (cin >> value) {
+                if (value >= min && value <= max) {
+                    valid = true;
+                } else {
+                    cout << "Please enter a number between " << min << " and " << max << ": ";
+                }
+            } else {
+                cout << "Invalid input. Please enter a whole number: ";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
             }
         }
-        return total;
+        
+        return value;
+    }
+
+    void waitForEnter() {
+        cout << "\nPress Enter to continue...";
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        if (cin.peek() == '\n') cin.ignore();
+    }
+
+    Date getDateInput() {
+        int day, month, year;
+        
+        cout << "Day (1-31): ";
+        day = getInput(1, 31);
+        
+        cout << "Month (1-12): ";
+        month = getInput(1, 12);
+        
+        cout << "Year (2000-2100): ";
+        year = getInput(2000, 2100);
+        
+        return Date(day, month, year);
     }
 
 public:
-    // Constructor - now accepts username to create user-specific files
-    FinanceManager(const string& username)
-        : username(username), dataFilename("finance_data_" + username + ".csv") {
-        // Initialize with some investment options
-        investments.push_back(Investment("Tech Growth Fund", "Stock", 0.12, 7.5, 1000.0));
-        investments.push_back(Investment("Real Estate Trust", "Real Estate", 0.08, 5.0, 5000.0));
-        investments.push_back(Investment("Government Bonds", "Bonds", 0.04, 2.0, 500.0));
-        investments.push_back(Investment("Bitcoin", "Cryptocurrency", 0.25, 9.5, 250.0));
-        investments.push_back(Investment("High-Yield Savings", "Savings", 0.03, 1.0, 100.0));
-        investments.push_back(Investment("Green Energy ETF", "Stock", 0.15, 6.5, 750.0));
-        investments.push_back(Investment("Gold", "Commodity", 0.06, 4.0, 300.0));
-
-        loadFromFile();
-    }
-
-    // Destructor to clean up dynamically allocated records
-    ~FinanceManager() {
-        for (auto record : records) {
-            delete record;
-        }
-    }
-
-    // Display welcome screen
-    void displayWelcome(const User& user) const {
-        clearScreen();
-
-        cout << Color::CYAN << "\n";
-        cout << " ╔═══════════════════════════════════════════════════╗\n";
-        cout << " ║                                                   ║\n";
-        cout << " ║  " << Color::BOLD << Color::YELLOW << "███████╗██╗███╗   ██╗ █████╗ ███╗   ██╗ ██████╗███████╗" << Color::CYAN << "  ║\n";
-        cout << " ║  " << Color::BOLD << Color::YELLOW << "██╔════╝██║████╗  ██║██╔══██╗████╗  ██║██╔════╝██╔════╝" << Color::CYAN << "  ║\n";
-        cout << " ║  " << Color::BOLD << Color::YELLOW << "█████╗  ██║██╔██╗ ██║███████║██╔██╗ ██║██║     █████╗  " << Color::CYAN << "  ║\n";
-        cout << " ║  " << Color::BOLD << Color::YELLOW << "██╔══╝  ██║██║╚██╗██║██╔══██║██║╚██╗██║██║     ██╔══╝  " << Color::CYAN << "  ║\n";
-        cout << " ║  " << Color::BOLD << Color::YELLOW << "██║     ██║██║ ╚████║██║  ██║██║ ╚████║╚██████╗███████╗" << Color::CYAN << "  ║\n";
-        cout << " ║  " << Color::BOLD << Color::YELLOW << "╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚══════╝" << Color::CYAN << "  ║\n";
-        cout << " ║                     " << Color::BOLD << Color::GREEN << "FLARE" << Color::CYAN << "                      ║\n";
-        cout << " ║                                                   ║\n";
-        cout << " ╚═══════════════════════════════════════════════════╝\n";
-        cout << Color::RESET << "\n";
-
-        cout << Color::YELLOW << " ★ " << Color::RESET << "Welcome back, " << Color::BOLD << Color::GREEN << user.getFullName() << Color::RESET << "!\n";
-        cout << Color::YELLOW << " ★ " << Color::RESET << "Username: " << Color::CYAN << user.getUsername() << Color::RESET << "\n";
-        cout << Color::YELLOW << " ★ " << Color::RESET << "Current Date: " << Color::CYAN << getCurrentDate() << Color::RESET << "\n";
-        cout << Color::YELLOW << " ★ " << Color::RESET << "Last Login: " << Color::MAGENTA << user.getLastLogin() << Color::RESET << "\n\n";
-
-        // Show a quick summary if there are records
-        if (!records.empty()) {
-            double balance = getTotalIncome() - getTotalExpenses();
-            cout << Color::WHITE << " Current Balance: ";
-            if (balance > 0) {
-                cout << Color::GREEN;
-            } else if (balance < 0) {
-                cout << Color::RED;
-            }
-            cout << "$" << fixed << setprecision(2) << balance << Color::RESET << "\n\n";
-        }
-
-        cout << Color::MAGENTA << " Press Enter to continue..." << Color::RESET;
-        cin.get();
-    }
-
-    // Add a new expense
-    void addExpense() {
-        string date, description, category;
-        double amount;
-
-        displayHeader("Add New Expense");
-
-        cout << "\n" << Color::YELLOW << "► " << Color::RESET << "Date (YYYY-MM-DD) " << Color::CYAN << "[Today: " << getCurrentDate() << "]: " << Color::RESET;
-        getline(cin, date);
-        if (date.empty()) {
-            date = getCurrentDate();
-        }
-
-        cout << Color::YELLOW << "► " << Color::RESET << "Amount: " << Color::GREEN << "$" << Color::RESET;
-        cin >> amount;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-        cout << Color::YELLOW << "► " << Color::RESET << "Description: " << Color::RESET;
-        getline(cin, description);
-
-        cout << Color::YELLOW << "► " << Color::RESET << "Category " << Color::CYAN << "(e.g., Food, Transport, Utilities): " << Color::RESET;
-        getline(cin, category);
-
-        records.push_back(new Expense(date, amount, description, category));
-
-        cout << "\n" << Color::GREEN << "✓ " << Color::BOLD << "Expense added successfully!" << Color::RESET << "\n";
-
-        saveToFile();
-    }
-
-    // Add a new income
-    void addIncome() {
-        string date, description, source;
-        double amount;
-
-        displayHeader("Add New Income");
-
-        cout << "\n" << Color::YELLOW << "► " << Color::RESET << "Date (YYYY-MM-DD) " << Color::CYAN << "[Today: " << getCurrentDate() << "]: " << Color::RESET;
-        getline(cin, date);
-        if (date.empty()) {
-            date = getCurrentDate();
-        }
-
-        cout << Color::YELLOW << "► " << Color::RESET << "Amount: " << Color::GREEN << "$" << Color::RESET;
-        cin >> amount;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-        cout << Color::YELLOW << "► " << Color::RESET << "Description: " << Color::RESET;
-        getline(cin, description);
-
-        cout << Color::YELLOW << "► " << Color::RESET << "Source " << Color::CYAN << "(e.g., Salary, Freelance, Investment): " << Color::RESET;
-        getline(cin, source);
-
-        records.push_back(new Income(date, amount, description, source));
-
-        cout << "\n" << Color::GREEN << "✓ " << Color::BOLD << "Income added successfully!" << Color::RESET << "\n";
-
-        saveToFile();
-    }
-
-    // View all records
-    void viewRecords() const {
-        displayHeader("Financial Records");
-
-        if (records.empty()) {
-            cout << "\n" << Color::YELLOW << "ⓘ " << Color::RESET << "No records found. Try adding some income or expenses!\n";
-            return;
-        }
-
-        cout << "\n" << Color::BOLD << Color::WHITE << left << setw(12) << "Date"
-             << setw(20) << "Description"
-             << setw(15) << "Category/Source"
-             << right << setw(12) << "Amount" << Color::RESET << endl;
-
-        displayDivider();
-
-        for (const auto& record : records) {
-            record->display();
-        }
-
-        // Display summary
-        double totalIncome = getTotalIncome();
-        double totalExpenses = getTotalExpenses();
-        double balance = totalIncome - totalExpenses;
-
-        displayDivider();
-
-        cout << Color::BOLD << left << setw(47) << "Total Income:"
-             << right << setw(10) << Color::GREEN << "$" << fixed << setprecision(2) << totalIncome << Color::RESET << endl;
-
-        cout << Color::BOLD << left << setw(47) << "Total Expenses:"
-             << right << setw(10) << Color::RED << "$" << fixed << setprecision(2) << totalExpenses << Color::RESET << endl;
-
-        displayDivider();
-
-        cout << Color::BOLD << left << setw(47) << "Balance:"
-             << right << setw(10);
-
-        if (balance >= 0) {
-            cout << Color::GREEN;
-        } else {
-            cout << Color::RED;
-        }
-
-        cout << "$" << fixed << setprecision(2) << balance << Color::RESET << endl;
-
-        cout << "\n" << Color::CYAN << "ⓘ " << Color::RESET;
-        if (balance > 0) {
-            cout << "You have a positive balance. Consider investing some of your savings!\n";
-        } else if (balance < 0) {
-            cout << "Your expenses exceed your income. Consider reviewing your budget.\n";
-        } else {
-            cout << "Your budget is exactly balanced.\n";
-        }
-    }
-
-    // Edit a record
-    void editRecord() {
-        if (records.empty()) {
-            cout << "\n" << Color::YELLOW << "ⓘ " << Color::RESET << "No records to edit. Try adding some first!\n";
-            return;
-        }
-
-        displayHeader("Edit Record");
-
-        // Display records with indices
-        cout << "\n" << Color::BOLD << left << setw(7) << "Index"
-             << setw(12) << "Date"
-             << setw(20) << "Description"
-             << setw(15) << "Category/Source"
-             << right << setw(12) << "Amount" << Color::RESET << endl;
-
-        displayDivider();
-
-        for (size_t i = 0; i < records.size(); i++) {
-            cout << Color::BOLD << Color::WHITE << left << setw(7) << i << Color::RESET;
-            records[i]->display();
-        }
-
-        int index;
-        cout << "\n" << Color::YELLOW << "► " << Color::RESET << "Enter the index of the record to edit "
-             << Color::CYAN << "(0-" << records.size() - 1 << "): " << Color::RESET;
-        cin >> index;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-        if (index < 0 || index >= static_cast<int>(records.size())) {
-            cout << "\n" << Color::RED << "✗ " << Color::BOLD << "Invalid index. Operation cancelled." << Color::RESET << "\n";
-            return;
-        }
-
-        Record* record = records[index];
-        string date, description;
-        double amount;
-
-        displayDivider();
-        cout << Color::YELLOW << "Editing Record:\n" << Color::RESET;
-        record->display();
-        displayDivider();
-
-        cout << "\n" << Color::YELLOW << "► " << Color::RESET << "New Date (YYYY-MM-DD) "
-             << Color::CYAN << "[" << record->getDate() << "]: " << Color::RESET;
-        getline(cin, date);
-        if (!date.empty()) {
-            record->setDate(date);
-        }
-
-        cout << Color::YELLOW << "► " << Color::RESET << "New Amount "
-             << Color::CYAN << "[$" << record->getAmount() << "]: $" << Color::RESET;
-        string amountStr;
-        getline(cin, amountStr);
-        if (!amountStr.empty()) {
-            amount = stod(amountStr);
-            record->setAmount(amount);
-        }
-
-        cout << Color::YELLOW << "► " << Color::RESET << "New Description "
-             << Color::CYAN << "[" << record->getDescription() << "]: " << Color::RESET;
-        getline(cin, description);
-        if (!description.empty()) {
-            record->setDescription(description);
-        }
-
-        if (record->getType() == "EXPENSE") {
-            Expense* expense = dynamic_cast<Expense*>(record);
-            string category;
-            cout << Color::YELLOW << "► " << Color::RESET << "New Category "
-                 << Color::CYAN << "[" << expense->getCategory() << "]: " << Color::RESET;
-            getline(cin, category);
-            if (!category.empty()) {
-                expense->setCategory(category);
-            }
-        } else if (record->getType() == "INCOME") {
-            Income* income = dynamic_cast<Income*>(record);
-            string source;
-            cout << Color::YELLOW << "► " << Color::RESET << "New Source "
-                 << Color::CYAN << "[" << income->getSource() << "]: " << Color::RESET;
-            getline(cin, source);
-            if (!source.empty()) {
-                income->setSource(source);
-            }
-        }
-
-        cout << "\n" << Color::GREEN << "✓ " << Color::BOLD << "Record updated successfully!" << Color::RESET << "\n";
-        saveToFile();
-    }
-
-    // Delete a record
-    void deleteRecord() {
-        if (records.empty()) {
-            cout << "\n" << Color::YELLOW << "ⓘ " << Color::RESET << "No records to delete. Try adding some first!\n";
-            return;
-        }
-
-        displayHeader("Delete Record");
-
-        // Display records with indices
-        cout << "\n" << Color::BOLD << left << setw(7) << "Index"
-             << setw(12) << "Date"
-             << setw(20) << "Description"
-             << setw(15) << "Category/Source"
-             << right << setw(12) << "Amount" << Color::RESET << endl;
-
-        displayDivider();
-
-        for (size_t i = 0; i < records.size(); i++) {
-            cout << Color::BOLD << Color::WHITE << left << setw(7) << i << Color::RESET;
-            records[i]->display();
-        }
-
-        int index;
-        cout << "\n" << Color::YELLOW << "► " << Color::RESET << "Enter the index of the record to delete "
-             << Color::CYAN << "(0-" << records.size() - 1 << "): " << Color::RESET;
-        cin >> index;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-        if (index < 0 || index >= static_cast<int>(records.size())) {
-            cout << "\n" << Color::RED << "✗ " << Color::BOLD << "Invalid index. Operation cancelled." << Color::RESET << "\n";
-            return;
-        }
-
-        // Show the record to be deleted
-        displayDivider();
-        cout << Color::RED << "Record to delete:\n" << Color::RESET;
-        records[index]->display();
-        displayDivider();
-
-        // Confirm deletion
-        char confirm;
-        cout << "\n" << Color::YELLOW << "⚠ " << Color::RESET
-             << "Are you sure you want to delete this record? "
-             << Color::RED << "(y/n): " << Color::RESET;
-        cin >> confirm;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-        if (tolower(confirm) != 'y') {
-            cout << "\n" << Color::YELLOW << "ⓘ " << Color::RESET << "Deletion cancelled.\n";
-            return;
-        }
-
-        // Delete the record
-        delete records[index];
-        records.erase(records.begin() + index);
-
-        cout << "\n" << Color::GREEN << "✓ " << Color::BOLD << "Record deleted successfully!" << Color::RESET << "\n";
-        saveToFile();
-    }
-
-    // Get investment suggestions
-    void getInvestmentSuggestions() const {
-        displayHeader("Investment Suggestions");
-
-        double totalIncome = getTotalIncome();
-        double totalExpenses = getTotalExpenses();
-        double balance = totalIncome - totalExpenses;
-
-        cout << "\n" << Color::CYAN << "ⓘ " << Color::RESET << "Your current balance: ";
-        if (balance >= 0) {
-            cout << Color::GREEN;
-        } else {
-            cout << Color::RED;
-        }
-        cout << "$" << fixed << setprecision(2) << balance << Color::RESET << "\n\n";
-
-        if (balance <= 0) {
-            cout << Color::YELLOW << "⚠ " << Color::RESET << "You currently don't have a positive balance for investments.\n";
-            cout << "   Focus on increasing income or reducing expenses before investing.\n";
-            return;
-        }
-
-        cout << Color::BOLD << "Here are some investment options based on your financial situation:" << Color::RESET << "\n\n";
-
-        cout << Color::BOLD << left << setw(20) << "Investment"
-             << setw(15) << "Type"
-             << right << setw(10) << "Return"
-             << setw(10) << "Risk"
-             << setw(15) << "Min. Amount" << Color::RESET << endl;
-
-        displayDivider();
-
-        // Filter investments based on available balance
-        bool foundSuitableInvestments = false;
-
-        for (const auto& investment : investments) {
-            if (investment.isSuitableFor(balance)) {
-                investment.display();
-
-                // Show potential returns
-                double annualReturn = investment.calculatePotentialReturn(balance);
-                cout << "   " << Color::CYAN << "➤ " << Color::RESET << "Potential annual return: "
-                     << Color::GREEN << "$" << fixed << setprecision(2) << annualReturn << Color::RESET << "\n";
-
-                foundSuitableInvestments = true;
-            }
-        }
-
-        if (!foundSuitableInvestments) {
-            cout << Color::YELLOW << "ⓘ " << Color::RESET << "No suitable investments found for your current balance.\n";
-            cout << "   Consider saving more or exploring micro-investment options.\n";
-        }
-
-        cout << "\n" << Color::YELLOW << "⚠ " << Color::BOLD << "Investment Disclaimer: " << Color::RESET
-             << "These are simplified suggestions for educational purposes.\n";
-        cout << "   Always consult a financial advisor before making investment decisions.\n";
-    }
-
-    // Load data from file
-    void loadFromFile() {
-        ifstream file(dataFilename);
-        if (!file) {
-            cout << Color::YELLOW << "ⓘ " << Color::RESET << "No existing data file found for user " << username << ". A new file will be created when records are added.\n";
-            return;
-        }
-
-        string line;
-        while (getline(file, line)) {
-            vector<string> tokens;
-            splitString(line, tokens, ',');
-
-            if (tokens.size() < 5) continue;
-
-            string type = tokens[0];
-            string date = tokens[1];
-            double amount = stod(tokens[2]);
-            string description = tokens[3];
-            string categoryOrSource = tokens[4];
-
-            if (type == "EXPENSE") {
-                records.push_back(new Expense(date, amount, description, categoryOrSource));
-            } else if (type == "INCOME") {
-                records.push_back(new Income(date, amount, description, categoryOrSource));
-            }
-        }
-
-        file.close();
-    }
-
-    // Save data to file
-    void saveToFile() const {
-        ofstream file(dataFilename);
-        if (!file) {
-            cout << "\n" << Color::RED << "✗ " << Color::BOLD << "Error: Unable to open file for writing: "
-                 << dataFilename << Color::RESET << endl;
-            return;
-        }
-
-        for (const auto& record : records) {
-            file << record->toFileString() << endl;
-        }
-
-        file.close();
-    }
-
-    // Display menu
     void displayMenu() const {
-        clearScreen();
+        cout << "\n=== Finance-Flare Menu ===\n";
+        cout << "1. Add Expense\n";
+        cout << "2. Add Income\n";
+        cout << "3. View Records\n";
+        cout << "4. Search Records\n";
+        cout << "5. Budget Management\n";
+        cout << "6. Financial Summary\n";
+        cout << "7. Investment Suggestions\n";
+        cout << "8. Save Data\n";
+        cout << "9. Load Data\n";
+        cout << "0. Exit\n";
+        cout << "Enter your choice: ";
+    }
 
-        cout << "\n" << Color::BG_CYAN << Color::BLACK << Color::BOLD << " FINANCE-FLARE MENU " << Color::RESET << "\n\n";
+    void addExpense() {
+        string description;
+        double amount;
+        string category;
+        bool useCustomDate = false;
+        Date transactionDate;
+        
+        cout << "\n=== Add Expense ===\n";
+        
+        cout << "Description: ";
+        description = getInput();
+        
+        cout << "Amount: $";
+        amount = getInput("Enter amount: $");
+        
+        // Show category options
+        cout << "\nCategories:\n";
+        const auto& categories = manager.getExpenseCategories();
+        for (size_t i = 0; i < categories.size(); i++) {
+            cout << i+1 << ". " << categories[i] << endl;
+        }
+        
+        cout << "Select category (1-" << categories.size() << "): ";
+        int choice = getInput(1, static_cast<int>(categories.size()));
+        category = categories[choice-1];
+        
+        cout << "Use custom date? (1 = Yes, 0 = No): ";
+        useCustomDate = getInput(0, 1);
+        
+        if (useCustomDate) {
+            cout << "Enter date:\n";
+            transactionDate = getDateInput();
+            Record expense(RecordType::EXPENSE, description, amount, category, transactionDate);
+            manager.addRecord(expense);
+        } else {
+            Record expense(RecordType::EXPENSE, description, amount, category);
+            manager.addRecord(expense);
+        }
+        
+        cout << "Expense added successfully!\n";
+    }
 
-        cout << Color::YELLOW << " [1] " << Color::RESET << Color::RED << "Add Expense" << Color::RESET << "\n";
-        cout << Color::YELLOW << " [2] " << Color::RESET << Color::GREEN << "Add Income" << Color::RESET << "\n";
-        cout << Color::YELLOW << " [3] " << Color::RESET << Color::CYAN << "View Financial Records" << Color::RESET << "\n";
-        cout << Color::YELLOW << " [4] " << Color::RESET << Color::MAGENTA << "Edit Record" << Color::RESET << "\n";
-        cout << Color::YELLOW << " [5] " << Color::RESET << Color::RED << "Delete Record" << Color::RESET << "\n";
-        cout << Color::YELLOW << " [6] " << Color::RESET << Color::BLUE << "Get Investment Suggestions" << Color::RESET << "\n";
-        cout << Color::YELLOW << " [7] " << Color::RESET << Color::GREEN << "Save and Logout" << Color::RESET << "\n";
-        cout << Color::YELLOW << " [8] " << Color::RESET << "Exit Application" << Color::RESET << "\n";
+    void addIncome() {
+        string description;
+        double amount;
+        string category;
+        bool useCustomDate = false;
+        Date transactionDate;
+        
+        cout << "\n=== Add Income ===\n";
+        
+        cout << "Source: ";
+        description = getInput();
+        
+        cout << "Amount: $";
+        amount = getInput("Enter amount: $");
+        
+        // Show category options
+        cout << "\nCategories:\n";
+        const auto& categories = manager.getIncomeCategories();
+        for (size_t i = 0; i < categories.size(); i++) {
+            cout << i+1 << ". " << categories[i] << endl;
+        }
+        
+        cout << "Select category (1-" << categories.size() << "): ";
+        int choice = getInput(1, static_cast<int>(categories.size()));
+        category = categories[choice-1];
+        
+        cout << "Use custom date? (1 = Yes, 0 = No): ";
+        useCustomDate = getInput(0, 1);
+        
+        if (useCustomDate) {
+            cout << "Enter date:\n";
+            transactionDate = getDateInput();
+            Record income(RecordType::INCOME, description, amount, category, transactionDate);
+            manager.addRecord(income);
+        } else {
+            Record income(RecordType::INCOME, description, amount, category);
+            manager.addRecord(income);
+        }
+        
+        cout << "Income added successfully!\n";
+    }
 
-        cout << "\n" << Color::YELLOW << "► " << Color::RESET << "Enter your choice (1-8): ";
+    void viewRecords() {
+        manager.displayRecords();
+    }
+
+    void searchRecords() {
+        cout << "\n=== Search Records ===\n";
+        cout << "1. Search by keyword\n";
+        cout << "2. Search by date\n";
+        cout << "3. Search by ID\n";
+        cout << "Enter choice: ";
+        
+        int choice = getInput(1, 3);
+        
+        switch (choice) {
+            case 1: {
+                cout << "Enter keyword: ";
+                string keyword = getInput();
+                manager.searchRecords(keyword);
+                break;
+            }
+            case 2: {
+                cout << "Enter date:\n";
+                Date date = getDateInput();
+                manager.searchRecords(date);
+                break;
+            }
+            case 3: {
+                cout << "Enter record ID: ";
+                int id = getInput(1, 10000);
+                manager.searchRecords(id);
+                break;
+            }
+        }
+    }
+
+    void budgetManagement() {
+        cout << "\n=== Budget Management ===\n";
+        cout << "1. View Budgets\n";
+        cout << "2. Set Budget\n";
+        cout << "Enter choice: ";
+        
+        int choice = getInput(1, 2);
+        
+        switch (choice) {
+            case 1:
+                manager.displayBudgets();
+                break;
+            case 2: {
+                const auto& categories = manager.getExpenseCategories();
+                
+                cout << "\nCategories:\n";
+                for (size_t i = 0; i < categories.size(); i++) {
+                    cout << i+1 << ". " << categories[i] << endl;
+                }
+                
+                cout << "Select category (1-" << categories.size() << "): ";
+                int catChoice = getInput(1, static_cast<int>(categories.size()));
+                string category = categories[catChoice-1];
+                
+                cout << "Enter monthly budget limit for " << category << ": $";
+                double limit = getInput("Enter budget limit: $");
+                
+                manager.setBudget(category, limit);
+                cout << "Budget set successfully!\n";
+                break;
+            }
+        }
+    }
+
+    void financialSummary() {
+        manager.displaySummary();
+        manager.displayCategoryBreakdown();
+    }
+
+    void suggestInvestments() {
+        manager.suggestInvestments();
+    }
+
+    void saveData() {
+        manager.saveData();
+    }
+
+    void loadData() {
+        manager.loadData();
+    }
+
+    void run() {
+        int choice;
+        bool running = true;
+
+        // Try to load data at startup
+        manager.loadData();
+
+        while (running) {
+            displayMenu();
+            choice = getInput(0, 9);
+            
+            switch (choice) {
+                case 1:
+                    addExpense();
+                    break;
+                case 2:
+                    addIncome();
+                    break;
+                case 3:
+                    viewRecords();
+                    break;
+                case 4:
+                    searchRecords();
+                    break;
+                case 5:
+                    budgetManagement();
+                    break;
+                case 6:
+                    financialSummary();
+                    break;
+                case 7:
+                    suggestInvestments();
+                    break;
+                case 8:
+                    saveData();
+                    break;
+                case 9:
+                    loadData();
+                    break;
+                case 0:
+                    running = false;
+                    cout << "\nThank you for using Finance-Flare!\n";
+                    break;
+            }
+            
+            if (running) {
+                waitForEnter();
+            }
+        }
     }
 };
 
 int main() {
-    UserManager userManager;
-
-    bool exitApplication = false;
-
-    while (!exitApplication) {
-        // Show authentication menu if not logged in
-        if (!userManager.isLoggedIn()) {
-            int authChoice = userManager.displayAuthMenu();
-
-            switch (authChoice) {
-                case 1: // Login
-                    if (!userManager.login()) {
-                        continue;
-                    }
-                    break;
-
-                case 2: // Create new account
-                    userManager.registerUser();
-                    continue;
-
-                case 3: // Exit application
-                    cout << Color::YELLOW << "ⓘ " << Color::BOLD << "Thank you for using Finance-Flare!" << Color::RESET << "\n";
-                    exitApplication = true;
-                    continue;
-
-                default:
-                    cout << Color::RED << "✗ " << Color::BOLD << "Invalid choice. Please try again." << Color::RESET << "\n";
-                    continue;
-            }
-        }
-
-        // Get current user and initialize finance manager
-        User currentUser = userManager.getCurrentUser();
-        FinanceManager manager(currentUser.getUsername());
-
-        // Display welcome screen
-        manager.displayWelcome(currentUser);
-
-        // Main application loop
-        int choice = 0;
-        bool loggedOut = false;
-
-        while (!loggedOut && choice != 8) {
-            manager.displayMenu();
-
-            cin >> choice;
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-            clearScreen();
-
-            switch (choice) {
-                case 1:
-                    manager.addExpense();
-                    break;
-                case 2:
-                    manager.addIncome();
-                    break;
-                case 3:
-                    manager.viewRecords();
-                    break;
-                case 4:
-                    manager.editRecord();
-                    break;
-                case 5:
-                    manager.deleteRecord();
-                    break;
-                case 6:
-                    manager.getInvestmentSuggestions();
-                    break;
-                case 7:
-                    cout << Color::GREEN << "✓ " << Color::BOLD << "Saving data and logging out..." << Color::RESET << "\n";
-                    userManager.logout();
-                    loggedOut = true;
-                    break;
-                case 8:
-                    cout << Color::YELLOW << "ⓘ " << Color::BOLD << "Exiting application..." << Color::RESET << "\n";
-                    exitApplication = true;
-                    break;
-                default:
-                    cout << Color::RED << "✗ " << Color::BOLD << "Invalid choice. Please try again." << Color::RESET << "\n";
-            }
-
-            if (!loggedOut && choice != 8) {
-                cout << "\n" << Color::MAGENTA << "Press Enter to continue..." << Color::RESET;
-                cin.get();
-            }
-        }
-    }
-
+    cout << "Welcome to Finance-Flare - Personal Finance Manager\n";
+    
+    FinanceUI ui;
+    ui.run();
+    
     return 0;
 }
