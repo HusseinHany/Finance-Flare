@@ -2,13 +2,20 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <limits>
+#include <thread>
+#include <chrono>
 using namespace std;
 
 class Record {
 public:
-    virtual void display() const = 0;  // Pure virtual function for displaying records
+    virtual void display() const = 0;
     virtual string getDetails() const = 0;
+    virtual string getType() const = 0;
+    virtual string getDesc() const = 0;
+    virtual double getAmount() const = 0;
+    virtual ~Record() {}
 };
 
 class Expense : public Record {
@@ -19,15 +26,16 @@ public:
     Expense(string desc, double amt) : description(desc), amount(amt) {}
 
     void display() const override {
-        cout << "Expense: " << description << " | Amount: $" << amount << endl;
+        cout << "\033[1;31mExpense:\033[0m " << description << " | Amount: $" << amount << endl;
     }
 
     string getDetails() const override {
-        return "Expense: " + description + " | Amount: " + to_string(amount);
+        return "Expense," + description + "," + to_string(amount);
     }
 
-    string getDescription() const { return description; }
-    double getAmount() const { return amount; }
+    string getType() const override { return "Expense"; }
+    string getDesc() const override { return description; }
+    double getAmount() const override { return amount; }
 };
 
 class Income : public Record {
@@ -38,15 +46,16 @@ public:
     Income(string src, double amt) : source(src), amount(amt) {}
 
     void display() const override {
-        cout << "Income: " << source << " | Amount: $" << amount << endl;
+        cout << "\033[1;32mIncome:\033[0m " << source << " | Amount: $" << amount << endl;
     }
 
     string getDetails() const override {
-        return "Income: " + source + " | Amount: " + to_string(amount);
+        return "Income," + source + "," + to_string(amount);
     }
 
-    string getSource() const { return source; }
-    double getAmount() const { return amount; }
+    string getType() const override { return "Income"; }
+    string getDesc() const override { return source; }
+    double getAmount() const override { return amount; }
 };
 
 class Investment {
@@ -57,45 +66,39 @@ public:
     Investment(string t, double amt) : type(t), recommendedAmount(amt) {}
 
     void display() const {
-        cout << "Recommended Investment: " << type << " | Suggested Amount: $" << recommendedAmount << endl;
+        cout << "\033[1;34mRecommended Investment:\033[0m " << type << " | Suggested Amount: $" << recommendedAmount << endl;
     }
 };
 
 class FinanceManager {
 private:
-    vector<Record*> records;  // Array of pointers to Record objects
+    vector<Record*> records;
     vector<Investment> investments;
     double totalIncome = 0.0;
     double totalExpenses = 0.0;
 
 public:
     ~FinanceManager() {
-        for (auto record : records) {
-            delete record;
-        }
+        for (auto record : records) delete record;
     }
 
-    void addRecord(Expense* expense) {
-        records.push_back(expense);
-        totalExpenses += expense->getAmount();
-    }
-
-    void addRecord(Income* income) {
-        records.push_back(income);
-        totalIncome += income->getAmount();
+    void addRecord(Record* record, bool isIncome) {
+        records.push_back(record);
+        if (isIncome) totalIncome += record->getAmount();
+        else totalExpenses += record->getAmount();
     }
 
     void displayRecords() const {
-        for (const auto& record : records) {
-            record->display();
-        }
-        cout << "Total Income: $" << totalIncome << endl;
-        cout << "Total Expenses: $" << totalExpenses << endl;
-        cout << "Balance: $" << totalIncome - totalExpenses << endl;
+        cout << "\n\033[1;36m--- Financial Records ---\033[0m\n";
+        for (const auto& record : records) record->display();
+        cout << "\n\033[1;32mTotal Income: $" << totalIncome << "\033[0m\n";
+        cout << "\033[1;31mTotal Expenses: $" << totalExpenses << "\033[0m\n";
+        cout << "\033[1;33mBalance: $" << (totalIncome - totalExpenses) << "\033[0m\n";
     }
 
     void suggestInvestments(const string& riskLevel) {
-        investments.clear();  // Clear previous suggestions
+        investments.clear();
+        cout << "\n\033[1;35m--- Suggested Investments (" << riskLevel << ") ---\033[0m\n";
 
         if (riskLevel == "conservative") {
             investments.push_back(Investment("Bonds (U.S. Treasuries)", 3000));
@@ -105,35 +108,59 @@ public:
             investments.push_back(Investment("Tech Stocks (S&P 500)", 4000));
             investments.push_back(Investment("REITs (Real Estate)", 2000));
             investments.push_back(Investment("Bonds (Corporate)", 2000));
-            investments.push_back(Investment("Cryptocurrencies (Bitcoin, Ethereum)", 1000));
+            investments.push_back(Investment("Cryptocurrencies", 1000));
         } else if (riskLevel == "aggressive") {
-            investments.push_back(Investment("Growth Stocks (Tech, Biotech)", 5000));
-            investments.push_back(Investment("Cryptocurrencies (Bitcoin, Ethereum)", 3000));
-            investments.push_back(Investment("REITs (Real Estate)", 1000));
-            investments.push_back(Investment("Commodities (Oil, Precious Metals)", 1000));
+            investments.push_back(Investment("Growth Stocks (Tech)", 5000));
+            investments.push_back(Investment("Cryptocurrencies", 3000));
+            investments.push_back(Investment("REITs", 1000));
+            investments.push_back(Investment("Commodities", 1000));
         }
 
-        for (const auto& investment : investments) {
-            investment.display();
-        }
+        for (const auto& inv : investments) inv.display();
     }
 
     void saveData() const {
-        ofstream outFile("financial_records.txt");
-
+        ofstream out("financial_records.txt");
         for (const auto& record : records) {
-            outFile << record->getDetails() << endl;
+            out << record->getDetails() << endl;
         }
-        outFile.close();
+        out.close();
+        cout << "\n\033[1;32mData saved successfully!\033[0m\n";
     }
 
     void loadData() {
-        ifstream inFile("financial_records.txt");
-        string line;
-        while (getline(inFile, line)) {
-            cout << line << endl;
+        cout << "\n\033[1;33mLoading financial data...\033[0m\n";
+        for (int i = 0; i < 3; ++i) {
+            cout << ".";
+            cout.flush();
+            this_thread::sleep_for(chrono::milliseconds(500));
         }
-        inFile.close();
+
+        cout << "\n\033[1;34mAnalyzing records...\033[0m\n";
+        this_thread::sleep_for(chrono::milliseconds(1000));
+
+        ifstream file("financial_records.txt");
+        string line;
+
+        for (auto r : records) delete r;
+        records.clear();
+        totalIncome = totalExpenses = 0;
+
+        while (getline(file, line)) {
+            stringstream ss(line);
+            string type, desc;
+            double amt;
+
+            getline(ss, type, ',');
+            getline(ss, desc, ',');
+            ss >> amt;
+
+            if (type == "Expense") addRecord(new Expense(desc, amt), false);
+            else if (type == "Income") addRecord(new Income(desc, amt), true);
+        }
+
+        file.close();
+        cout << "\033[1;32mData loaded and analyzed successfully!\033[0m\n";
     }
 };
 
@@ -145,63 +172,52 @@ public:
     Screen(FinanceManager& mgr) : manager(mgr) {}
 
     void displayMenu() const {
-        cout << "\n--- Finance-Flare ---" << endl;
-        cout << "1. Add Expense" << endl;
-        cout << "2. Add Income" << endl;
-        cout << "3. View All Records" << endl;
-        cout << "4. Suggest Investments" << endl;
-        cout << "5. Save Data" << endl;
-        cout << "6. Load Data" << endl;
-        cout << "7. Exit" << endl;
+        cout << "\n\033[1;36m======= Finance-Flare Menu =======\033[0m\n";
+        cout << "1. Add Expense\n";
+        cout << "2. Add Income\n";
+        cout << "3. View All Records\n";
+        cout << "4. Suggest Investments\n";
+        cout << "5. Save Data to File\n";
+        cout << "6. Load Data from File\n";
+        cout << "7. Exit\n";
+        cout << "\033[1;36m==================================\033[0m\n";
         cout << "Enter your choice: ";
     }
 
     void addExpense() {
-        string description;
-        double amount;
+        string desc;
+        double amt;
         cout << "Enter expense description: ";
-        cin.ignore();  // To clear the input buffer
-        getline(cin, description);
+        cin.ignore();
+        getline(cin, desc);
         cout << "Enter expense amount: $";
-        cin >> amount;
-
-        Expense* expense = new Expense(description, amount);
-        manager.addRecord(expense);
+        cin >> amt;
+        manager.addRecord(new Expense(desc, amt), false);
     }
 
     void addIncome() {
-        string source;
-        double amount;
+        string src;
+        double amt;
         cout << "Enter income source: ";
-        cin.ignore();  // To clear the input buffer
-        getline(cin, source);
+        cin.ignore();
+        getline(cin, src);
         cout << "Enter income amount: $";
-        cin >> amount;
-
-        Income* income = new Income(source, amount);
-        manager.addRecord(income);
+        cin >> amt;
+        manager.addRecord(new Income(src, amt), true);
     }
 
-    void viewRecords() {
-        manager.displayRecords();
-    }
+    void viewRecords() { manager.displayRecords(); }
 
     void suggestInvestments() {
-        string riskLevel;
-        cout << "Enter your risk level (conservative, balanced, aggressive): ";
-        cin >> riskLevel;
-        manager.suggestInvestments(riskLevel);
+        string level;
+        cout << "Enter risk level (conservative / balanced / aggressive): ";
+        cin >> level;
+        manager.suggestInvestments(level);
     }
 
-    void saveData() {
-        manager.saveData();
-        cout << "Data saved successfully!" << endl;
-    }
+    void saveData() { manager.saveData(); }
 
-    void loadData() {
-        cout << "\nLoaded Data from File:\n";
-        manager.loadData();
-    }
+    void loadData() { manager.loadData(); }
 
     void run() {
         int choice;
@@ -210,33 +226,19 @@ public:
         while (running) {
             displayMenu();
             cin >> choice;
-
             switch (choice) {
-                case 1:
-                    addExpense();
-                    break;
-                case 2:
-                    addIncome();
-                    break;
-                case 3:
-                    viewRecords();
-                    break;
-                case 4:
-                    suggestInvestments();
-                    break;
-                case 5:
-                    saveData();
-                    break;
-                case 6:
-                    loadData();
-                    break;
+                case 1: addExpense(); break;
+                case 2: addIncome(); break;
+                case 3: viewRecords(); break;
+                case 4: suggestInvestments(); break;
+                case 5: saveData(); break;
+                case 6: loadData(); break;
                 case 7:
                     running = false;
-                    cout << "Exiting application." << endl;
+                    cout << "\n\033[1;35mThank you for using Finance-Flare!\033[0m\n";
                     break;
                 default:
-                    cout << "Invalid choice. Please try again." << endl;
-                    break;
+                    cout << "\033[1;31mInvalid choice. Try again.\033[0m\n";
             }
         }
     }
@@ -245,9 +247,6 @@ public:
 int main() {
     FinanceManager manager;
     Screen screen(manager);
-
     screen.run();
-
     return 0;
 }
-
