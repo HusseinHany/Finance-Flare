@@ -13,19 +13,39 @@ enum class RecordType {
     EXPENSE
 };
 
-// Simple record class for financial transactions
-class Record {
-private:
-    RecordType type;
+// Base class for transactions (inheritance)
+class Transaction {
+protected:
     string description;
     double amount;
     string category;
 
 public:
-    Record(RecordType t, string desc, double amt, string cat)
-        : type(t), description(desc), amount(amt), category(cat) {}
+    Transaction(string desc, double amt, string cat)
+        : description(desc), amount(amt), category(cat) {}
 
-    void display() const {
+    virtual void display() const = 0; // Pure virtual function for polymorphism
+
+    virtual string getFileFormat() const = 0; // Pure virtual for file saving
+
+    // Getters
+    string getDescription() const { return description; }
+    double getAmount() const { return amount; }
+    string getCategory() const { return category; }
+
+    virtual ~Transaction() = default; // Virtual destructor for proper cleanup
+};
+
+// Derived class for records
+class Record : public Transaction {
+private:
+    RecordType type;
+
+public:
+    Record(RecordType t, string desc, double amt, string cat)
+        : Transaction(desc, amt, cat), type(t) {}
+
+    void display() const override {
         if (type == RecordType::INCOME) {
             cout << "INCOME: " << description 
                  << " | $" << fixed << setprecision(2) << amount 
@@ -37,7 +57,7 @@ public:
         }
     }
 
-    string getFileFormat() const {
+    string getFileFormat() const override {
         string typeStr = (type == RecordType::INCOME) ? "Income" : "Expense";
         return typeStr + "," + description + "," + to_string(amount) + "," + category;
     }
@@ -72,9 +92,6 @@ public:
     }
 
     bool isIncome() const { return type == RecordType::INCOME; }
-    string getDescription() const { return description; }
-    double getAmount() const { return amount; }
-    string getCategory() const { return category; }
 };
 
 // Finance manager class to handle all operations
