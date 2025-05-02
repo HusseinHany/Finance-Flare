@@ -339,15 +339,15 @@ static void suggestInvestmentsAndOptions() {
 	 }
 
 	 int x , m;
-	 double balance;
+	 double bal;
 	 cout << "Choose What Is the Most Sutable case For You\n";
 	 cin >> x;
 	 cout << "Please Enter The Amount You Want To Invest\n";
-	 cin >> balance;
+	 cin >> bal;
 	 cout << "Please Enter The Duration In Months\n";
 	 cin >> m;
 
-	 cout << "You Have Chosen Investment Option " << x << " with an amount of $" << fixed << setprecision(2) << balance << " for a duration of " << m << " months." << endl;
+	 cout << "You Have Chosen Investment Option " << x << " with an amount of $" << fixed << setprecision(2) << bal << " for a duration of " << m << " months." << endl;
 	 cout << "Your investment will be monitored and adjusted based on market conditions." << endl;
 	 cout << "Please wait while we process your investment...\n";
 	 this_thread::sleep_for(chrono::seconds(3)); // 7 seconds delay
@@ -357,7 +357,7 @@ static void suggestInvestmentsAndOptions() {
 			{
 		case 1: {
         double highRiskROI = 0.03;  // 3% monthly ROI
-        double highRiskProfit = balance * highRiskROI * m;
+        double highRiskProfit = bal * highRiskROI * m;
         cout << "High-risk Investment: $" << fixed << setprecision(2) << balance << endl;
 		this_thread::sleep_for(chrono::seconds(1));
         cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << highRiskProfit << endl;
@@ -365,152 +365,152 @@ static void suggestInvestmentsAndOptions() {
 			  }
 		 case 2: {
         double lowRiskROI = 0.01;  // 1% monthly ROI
-        double lowRiskProfit = balance * lowRiskROI * m;
-        cout << "Low-risk Investment: $" << fixed << setprecision(2) << balance << endl;
+        double lowRiskProfit = bal * lowRiskROI * m;
+        cout << "Low-risk Investment: $" << fixed << setprecision(2) << bal << endl;
 		this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << lowRiskProfit << endl;
         break;
 			  }
 		 case 3: {
         double mediumRiskROI = 0.02;  // 2% monthly ROI
-        double mediumRiskProfit = balance * mediumRiskROI * m;
-        cout << "Medium-risk Investment: $" << fixed << setprecision(2) << balance << endl;
+        double mediumRiskProfit = bal * mediumRiskROI * m;
+        cout << "Medium-risk Investment: $" << fixed << setprecision(2) << bal << endl;
         this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << mediumRiskProfit << endl;
         break;
 				 }
 		 case 4: {
         double cryptoROI = 0.0167;  // 1.67% monthly ROI
-        double cryptoProfit = balance * cryptoROI * m;
-        cout << "Cryptocurrency Investment: $" << fixed << setprecision(2) << balance << endl;
+        double cryptoProfit = bal * cryptoROI * m;
+        cout << "Cryptocurrency Investment: $" << fixed << setprecision(2) << bal << endl;
         this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << cryptoProfit << endl;
         break;
 			  }
 			 case 5: {
         double diversifiedROI = 0.0075;  // 0.75% monthly ROI
-        double diversifiedProfit = balance * diversifiedROI * m;
-        cout << "Diversified Portfolio: $" << fixed << setprecision(2) << balance << endl;
+        double diversifiedProfit = bal * diversifiedROI * m;
+        cout << "Diversified Portfolio: $" << fixed << setprecision(2) << bal << endl;
         this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" <<fixed << setprecision(2) << diversifiedProfit << endl;
         break;
 				  }
 			case 6: {
         double savingsAccountROI = 0.0025;  // 0.25% monthly ROI
-        double savingsProfit = balance * savingsAccountROI * m;
-        cout << "Savings Account: $" << fixed << setprecision(2) << balance << endl;
+        double savingsProfit = bal * savingsAccountROI * m;
+        cout << "Savings Account: $" << fixed << setprecision(2) << bal << endl;
         this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << savingsProfit << endl;
         break;
 				 }
 		  case 7: {
         double retirementAccountROI = 0.005;  // 0.5% monthly ROI
-        double retirementProfit = balance * retirementAccountROI * m;
-        cout << "Retirement Account: $" << fixed << setprecision(2) << balance << endl;
+        double retirementProfit = bal * retirementAccountROI * m;
+        cout << "Retirement Account: $" << fixed << setprecision(2) << bal << endl;
        this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << retirementProfit << endl;
         break;
 				 }
 		  case 8: {
         double emergencyFundROI = 0.003;  // 0.3% monthly ROI
-        double emergencyFundProfit = balance * emergencyFundROI * m;
-        cout << "Emergency Fund: $" << fixed << setprecision(2) << balance << endl;
+        double emergencyFundProfit = bal * emergencyFundROI * m;
+        cout << "Emergency Fund: $" << fixed << setprecision(2) << bal << endl;
       this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << emergencyFundProfit << endl;
         break;
 			  }
 		 case 9: {
         double educationROI = 0.001;  // 0.1% monthly ROI
-        double educationProfit = balance * educationROI * m;
-        cout << "Investment in Education: $" << fixed << setprecision(2) << balance << endl;
+        double educationProfit = bal * educationROI * m;
+        cout << "Investment in Education: $" << fixed << setprecision(2) << bal << endl;
         this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << educationProfit << endl;
         break;
 			  }
 		 case 10: {
      double healthROI = 0.001;  // 0.1% monthly ROI
-        double healthProfit = balance * healthROI * m;
-        cout << "Investment in Health: $" << fixed << setprecision(2) << balance << endl;
+        double healthProfit = bal * healthROI * m;
+        cout << "Investment in Health: $" << fixed << setprecision(2) << bal << endl;
         this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << healthProfit << endl;
         break;
 			  }
 		  case 11: {
         double realEstateROI = 0.015;  // 1.5% monthly ROI
-        double realEstateProfit = balance * realEstateROI * m;
-        cout << "Real Estate Investment: $" << fixed << setprecision(2) << balance << endl;
+        double realEstateProfit = bal * realEstateROI * m;
+        cout << "Real Estate Investment: $" << fixed << setprecision(2) << bal << endl;
         this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << realEstateProfit << endl;
         break;
 			  }
 		 case 12: {
         double bondsROI = 0.005;  // 0.5% monthly ROI
-        double bondsProfit = balance * bondsROI * m;
-        cout << "Bonds: $" << fixed << setprecision(2) << balance << endl;
+        double bondsProfit = bal * bondsROI * m;
+        cout << "Bonds: $" << fixed << setprecision(2) << bal << endl;
         this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << bondsProfit << endl;
         break;
 			 }
 		  case 13: {
         double mutualFundsROI = 0.0075;  // 0.75% monthly ROI
-        double mutualFundsProfit = balance * mutualFundsROI * m;
-        cout << "Mutual Funds: $" << fixed << setprecision(2) << balance << endl;
+        double mutualFundsProfit = bal * mutualFundsROI * m;
+        cout << "Mutual Funds: $" << fixed << setprecision(2) << bal << endl;
         this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << mutualFundsProfit << endl;
         break;
 			 }
 		 case 14: {
         double stockMarketROI = 0.02;  // 2% monthly ROI
-        double stockMarketProfit = balance * stockMarketROI * m;
-        cout << "Stock Market Investment: $" << fixed << setprecision(2) << balance << endl;
+        double stockMarketProfit = bal * stockMarketROI * m;
+        cout << "Stock Market Investment: $" << fixed << setprecision(2) << bal << endl;
         this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << stockMarketProfit << endl;
         break;
 			  }
 		 case 15: {
         double preciousMetalsROI = 0.01;  // 1% monthly ROI
-        double preciousMetalsProfit = balance * preciousMetalsROI * m;
-        cout << "Precious Metals (Gold/Silver): $" << fixed << setprecision(2) << balance << endl;
+        double preciousMetalsProfit = bal * preciousMetalsROI * m;
+        cout << "Precious Metals (Gold/Silver): $" << fixed << setprecision(2) << bal << endl;
        this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << preciousMetalsProfit << endl;
         break;
 			  }
 		  case 16: {
         double peerToPeerROI = 0.015;  // 1.5% monthly ROI
-        double peerToPeerProfit = balance * peerToPeerROI * m;
-        cout << "Peer-to-Peer Lending: $" << fixed << setprecision(2) << balance << endl;
+        double peerToPeerProfit = bal * peerToPeerROI * m;
+        cout << "Peer-to-Peer Lending: $" << fixed << setprecision(2) << bal << endl;
         this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << peerToPeerProfit << endl;
         break;
 			   }
 		  case 17: {
         double hedgeFundsROI = 0.02;  // 2% monthly ROI
-        double hedgeFundsProfit = balance * hedgeFundsROI * m;
-        cout << "Hedge Funds: $" << fixed << setprecision(2) << balance << endl;
+        double hedgeFundsProfit = bal * hedgeFundsROI * m;
+        cout << "Hedge Funds: $" << fixed << setprecision(2) << bal << endl;
         this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << hedgeFundsProfit << endl;
         break;
 			   }
 		 case 18: {
         double ventureCapitalROI = 0.03;  // 3% monthly ROI
-        double ventureCapitalProfit = balance * ventureCapitalROI * m;
-        cout << "Venture Capital: $" << fixed << setprecision(2) << balance << endl;
+        double ventureCapitalProfit = bal * ventureCapitalROI * m;
+        cout << "Venture Capital: $" << fixed << setprecision(2) << bal << endl;
         this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << ventureCapitalProfit << endl;
         break;
 			   }
 		  case 19: {
         double artAndCollectiblesROI = 0.005;  // 0.5% monthly ROI
-        double artAndCollectiblesProfit = balance * artAndCollectiblesROI * m;
-        cout << "Art and Collectibles: $" << fixed << setprecision(2) << balance << endl;
+        double artAndCollectiblesProfit = bal * artAndCollectiblesROI * m;
+        cout << "Art and Collectibles: $" << fixed << setprecision(2) << bal << endl;
         this_thread::sleep_for(chrono::seconds(1));
 		cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << artAndCollectiblesProfit << endl;
 		break;
 			   }
 			case 20: {
         double carbonCreditROI = 0.007;  // 0.7% monthly ROI
-        double carbonCreditProfit = balance * carbonCreditROI * m;
-        cout << "Carbon Credit Investment: $" << fixed << setprecision(2) << balance << endl;
+        double carbonCreditProfit = bal * carbonCreditROI * m;
+        cout << "Carbon Credit Investment: $" << fixed << setprecision(2) << bal << endl;
         cout << "Expected Profit (for << " << m << "): $" << fixed << setprecision(2) << carbonCreditProfit << endl;
         break;
 				}
@@ -523,7 +523,6 @@ static void suggestInvestmentsAndOptions() {
 
 
 }
-
 };
 
 class UserInterface {
