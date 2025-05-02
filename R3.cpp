@@ -456,7 +456,7 @@ int main() {
 		}
 		case 7:
                     screen::clear();
-                    Financemanager::suggestinvestments();
+                    FinananceManager::suggestinvestments();
                     system("pause")
                     break;
 		case 8:
