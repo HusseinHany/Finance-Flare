@@ -309,11 +309,15 @@ public:
     cout << "Your Available Balance: $" << fixed << setprecision(2) << balance << endl << endl;
 
 	 if (balance < 10000) {
+		  cout << "Analyzing your balance. Please wait...\n";
+                          this_thread::sleep_for(chrono::seconds(5)); // seconds delay
         cout << "Emergency Fund: $" << fixed << setprecision(2) << (balance * 0.8) << endl;
         cout << "Low-risk Investment: $" << fixed << setprecision(2) << (balance * 0.2) << endl;
 	 } 
 	 
 	 else {
+		  cout << "Analyzing your balance. Please wait...\n";
+                         this_thread::sleep_for(chrono::seconds(7)); // seconds delay
 		cout << "1. High-risk Investment: $" << fixed << setprecision(2) << (balance * 0.1) << endl;
 		cout << "2. Low-risk Investment: $" << fixed << setprecision(2) << (balance * 0.3) << endl;	
 		cout << "3. Medium-risk Investment: $" << fixed << setprecision(2) << (balance * 0.2) << endl;
