@@ -457,7 +457,7 @@ int main() {
 		case 7:
                     screen::clear();
                     FinananceManager::suggestInvestments();
-                    system("pause")
+                    system("pause");
                     break;
 		case 8:
 			cout << "Exiting..." << endl;
