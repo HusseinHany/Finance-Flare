@@ -329,7 +329,8 @@ public:
 		cout << "4. View Expense" << endl;
 		cout << "5. View All Transactions" << endl;
 		cout << "6. Delete Transaction" << endl;
-		cout << "7. Exit" << endl;
+                cout << "7. Investment Suggestions" << endl;
+		cout << "8. Exit" << endl;
 	}
 };
 
@@ -453,13 +454,18 @@ int main() {
 			FinananceManager::deleteTransaction(description);
 			break;
 		}
-		case 7:
+		case 7
+                    screen::clear();
+                    Financemanager::suggestinvestments();
+                    system("pause")
+                    break;
+		case 8:
 			cout << "Exiting..." << endl;
 			break;
 		default:
 			cout << "Invalid choice! Please try again." << endl;
 			break;
 		}
-	} while (choice != 7);
+	} while (choice != 8);
 	return 0;
 }
