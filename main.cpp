@@ -293,30 +293,49 @@ public:
 		}
 	}
 
-    static void suggestInvestments() {
-        double totalIncome = Income::calculateTotal();
-        double totalExpenses = Expense::calculateTotal();
-        double balance = totalIncome - totalExpenses;
-        
-        if (balance <= 0) {
-            cout << "\nyou currently dont have a positive balance for investment in your accounts.\n";
-            return;
-        }
-        
-        cout << "\n===  Investment Suggestions  ===\n";
-        cout << "Your Total Income: $" << fixed << setprecision(2) << totalIncome<< endl;
-        cout << "Your Total Expenses: $" << fixed << setprecision(2) << totalExpenses << endl;
-        cout << "Your Available Balance: $" << fixed << setprecision(2) << balance << endl<< endl;
-        
-        if (balance < 10000) {
-            cout << "Emergency Fund: $" << fixed << setprecision(2) << (balance * 0.8) << endl;
-            cout << "Low-risk Investment: $" << fixed << setprecision(2) << (balance * 0.2) << endl;
-        } else {
-            cout << "Emergency Fund: $" << fixed << setprecision(2) << (balance * 0.5) << endl;
-            cout << "Low-risk Investment: $" << fixed << setprecision(2) << (balance * 0.3) << endl;
-            cout << "Medium-risk Investment: $" << fixed << setprecision(2) << (balance * 0.2) << endl;
-        }
+    static void suggestInvestmentsAndOptions() {
+    double totalIncome = Income::calculateTotal();
+    double totalExpenses = Expense::calculateTotal();
+    double balance = totalIncome - totalExpenses;
+
+    if (balance <= 0) {
+        cout << "\nYou currently don't have a positive balance for investment in your accounts.\n";
+        return;
     }
+
+    cout << "\n=== Investment Suggestions ===\n";
+    cout << "Your Total Income: $" << fixed << setprecision(2) << totalIncome << endl;
+    cout << "Your Total Expenses: $" << fixed << setprecision(2) << totalExpenses << endl;
+    cout << "Your Available Balance: $" << fixed << setprecision(2) << balance << endl << endl;
+
+	 if (balance < 10000) {
+        cout << "Emergency Fund: $" << fixed << setprecision(2) << (balance * 0.8) << endl;
+        cout << "Low-risk Investment: $" << fixed << setprecision(2) << (balance * 0.2) << endl;
+	 } 
+	 
+	 else {
+		cout << "1. High-risk Investment: $" << fixed << setprecision(2) << (balance * 0.1) << endl;
+		cout << "2. Low-risk Investment: $" << fixed << setprecision(2) << (balance * 0.3) << endl;	
+		cout << "3. Medium-risk Investment: $" << fixed << setprecision(2) << (balance * 0.2) << endl;
+		cout << "4. Cryptocurrency Investment: $" << fixed << setprecision(2) << (balance * 0.1) << endl;
+		cout << "5. Diversified Portfolio: $" << fixed << setprecision(2) << (balance * 0.4) << endl;
+		cout << "6. Savings Account: $" << fixed << setprecision(2) << (balance * 0.5) << endl;
+		cout << "7. Retirement Account: $" << fixed << setprecision(2) << (balance * 0.3) << endl;
+		cout << "8. Emergency Fund: $" << fixed << setprecision(2) << (balance * 0.2) << endl;
+		cout << "9. Investment in Education: $" << fixed << setprecision(2) << (balance * 0.1) << endl;	
+		cout << "10. Investment in Health: $" << fixed << setprecision(2) << (balance * 0.1) << endl;
+		cout << "11. Real Estate Investment: $" << fixed << setprecision(2) << (balance * 0.25) << endl;	
+		cout << "12. Bonds: $" << fixed << setprecision(2) << (balance * 0.15) << endl;
+		cout << "13. Mutual Funds: $" << fixed << setprecision(2) << (balance * 0.2) << endl;
+		cout << "14. Stock Market Investment: $" << fixed << setprecision(2) << (balance * 0.35) << endl;
+		cout << "15. Precious Metals (Gold/Silver): $" << fixed << setprecision(2) << (balance * 0.1) << endl;
+		cout << "16. Peer-to-Peer Lending: $" << fixed << setprecision(2) << (balance * 0.05) << endl;
+		cout << "17. Hedge Funds: $" << fixed << setprecision(2) << (balance * 0.2) << endl;
+		cout << "18. Venture Capital: $" << fixed << setprecision(2) << (balance * 0.15) << endl;
+		cout << "19. Art and Collectibles: $" << fixed << setprecision(2) << (balance * 0.05) << endl;
+		cout << "20. Carbon Credit Investment: $" << fixed << setprecision(2) << (balance * 0.05) << endl;
+	 }
+}
 };
 
 class UserInterface {
@@ -407,7 +426,7 @@ int main() {
 		}
 		case 7:
                     screen::clear();
-                    FinananceManager::suggestInvestments();
+                    FinananceManager::suggestInvestmentsAndOptions();
                     system("pause");
                     break;
 		case 8:
