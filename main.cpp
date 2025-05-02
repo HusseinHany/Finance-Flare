@@ -341,56 +341,7 @@ public:
 	}
 };
 
-class User {
-public:
-	string username;
-	string password;
-	User(string u, string p) {
-		username = u;
-		password = p;
-	}
-};
-
-class UserManager {
-private:
-	vector<User> users;
-public:
-	void addUser(string username, string password) {
-		users.push_back(User(username, password));
-	}
-	bool authenticate(string username, string password) {
-		for (const auto& user : users) {
-			if (user.username == username && user.password == password) {
-				return true;
-			}
-		}
-		return false;
-	}
-};
-
-class Authentication {
-private:
-	UserManager userManager;
-public:
-	Authentication() {
-		userManager.addUser("admin", "password");
-	}
-	bool login(string username, string password) {
-		return userManager.authenticate(username, password);
-	}
-};
-
 int main() {
-	Authentication auth;
-	string username, password;
-	cout << "Enter username: ";
-	cin >> username;
-	cout << "Enter password: ";
-	cin >> password;
-	if (!auth.login(username, password)) {
-		cout << "Invalid username or password!" << endl;
-		return 0;
-	}
 	int choice;
 	do {
 		screen::clear();
