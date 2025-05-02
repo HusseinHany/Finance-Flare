@@ -3,6 +3,8 @@
 #include <fstream>
 #include <vector>
 #include <iomanip>
+#include <thread> 
+#include <chrono>
 using namespace std;																				
 
 class RecordType {
