@@ -120,6 +120,14 @@ public:
 		}
 		return transactions;
 	}
+    static double calculateTotal() {
+        double total = 0.0;
+        vector<Income> incomes = readFromFile();
+        for (const auto& income : incomes) {
+            total += income.getAmount();
+        }
+        return total;
+    }
 };
 
 class Expense : public Transaction {
@@ -176,6 +184,14 @@ public:
 		}
 		return transactions;
 	}
+    static double calculateTotal() {
+        double total = 0.0;
+        vector<Expense> expenses = readFromFile();
+        for (const auto& expense : expenses) {
+            total += expense.getAmount();
+        }
+        return total;
+    }
 };
 
 class Filemanager : public Transaction{
@@ -277,6 +293,30 @@ public:
 		}
 	}
 
+    static void suggestInvestments() {
+        double totalIncome = Income::calculateTotal();
+        double totalExpenses = Expense::calculateTotal();
+        double balance = totalIncome - totalExpenses;
+        
+        if (balance <= 0) {
+            cout << "\nyou currently dont have a positive balance for investment in your accounts.\n";
+            return;
+        }
+        
+        cout << "\n===  Investment Suggestions  ===\n";
+        cout << "Your Total Income: $" << fixed << setprecision(2) << totalIncome<< endl;
+        cout << "Your Total Expenses: $" << fixed << setprecision(2) << totalExpenses << endl;
+        cout << "Your Available Balance: $" << fixed << setprecision(2) << balance << endl<< endl;
+        
+        if (balance < 10000) {
+            cout << "Emergency Fund: $" << fixed << setprecision(2) << (balance * 0.8) << endl;
+            cout << "Low-risk Investment: $" << fixed << setprecision(2) << (balance * 0.2) << endl;
+        } else {
+            cout << "Emergency Fund: $" << fixed << setprecision(2) << (balance * 0.5) << endl;
+            cout << "Low-risk Investment: $" << fixed << setprecision(2) << (balance * 0.3) << endl;
+            cout << "Medium-risk Investment: $" << fixed << setprecision(2) << (balance * 0.2) << endl;
+        }
+    }
 };
 
 class UserInterface {
