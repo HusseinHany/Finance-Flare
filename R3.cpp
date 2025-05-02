@@ -454,7 +454,7 @@ int main() {
 			FinananceManager::deleteTransaction(description);
 			break;
 		}
-		case 7
+		case 7:
                     screen::clear();
                     Financemanager::suggestinvestments();
                     system("pause")
