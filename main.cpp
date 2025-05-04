@@ -15,6 +15,115 @@ public:
 
 };
 
+class Validator {
+public:
+    static string selectIncomeCategory() {
+        vector<string> categories = {"Salary", "Business", "Investment", "Gift", "Other"};
+
+        cout << "\n\033[33m=== Select Income Category ===\033[0m\n";
+        for (size_t i = 0; i < categories.size(); i++) {
+            cout << i + 1 << ". " << categories[i] << endl;
+        }
+
+        int choice;
+        cout << "Enter your choice (1-" << categories.size() << "): ";
+        cin >> choice;
+
+        while (choice < 1 || choice > static_cast<int>(categories.size()) || cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "\033[31mInvalid choice. Please try again: \033[0m";
+            cin >> choice;
+        }
+
+        return categories[choice - 1];
+    }
+    static string selectExpenseCategory() {
+        vector<string> categories = {"Food", "Housing", "Transportation", "Entertainment",
+                                   "Shopping", "Utilities", "Healthcare", "Education",
+                                   "Personal", "Other"};
+
+        cout << "\n\033[33m=== Select Expense Category ===\033[0m\n";
+        for (size_t i = 0; i < categories.size(); i++) {
+            cout << i + 1 << ". " << categories[i] << endl;
+        }
+
+        int choice;
+        cout << "Enter your choise (1-" << categories.size() << "): ";
+        cin >> choice;
+
+        while (choice < 1 || choice > static_cast<int>(categories.size()) || cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "\033[31mInvalid choice. Please try again : \033[0m";
+            cin >> choice;
+        }
+
+        return categories[choice - 1];
+    }
+
+    static string validateDate() {
+        int day, month, year;
+        bool validDate = false;
+
+        while (!validDate) {
+            cout << "\033[33mEnter day (1-31): \033[0m";
+            cin >> day;
+
+            while (day < 1 || day > 31 || cin.fail()) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "\033[31mInvalid day. Please enter a valuue between 1 and 31: \033[0m";
+                cin >> day;
+            }
+
+            cout << "\033[33mEnter month (1-12): \033[0m";
+            cin >> month;
+
+            while (month < 1 || month > 12 || cin.fail()) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "\033[31mInvalid month. Please enter a value between 1 and 12: \033[0m";
+                cin >> month;
+            }
+
+            cout << "\033[33menter year (e.g., 2025): \033[0m";
+            cin >> year;
+
+            while (year < 2000 || year > 2030 || cin.fail()) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "\033[31minvalid year. Please enter a value between 2000 and 2030 : \033[0m";
+                cin >> year;
+            }
+
+            bool validDaysInMonth = true;
+
+            if ((month == 4 || month == 6 || month == 9 || month == 11) && day > 30) {
+                validDaysInMonth = false;
+            }
+            else if (month == 2) {
+                bool isLeapYear = (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
+                if ((isLeapYear && day > 29) || (!isLeapYear && day > 28)) {
+                    validDaysInMonth = false;
+                }
+            }
+
+            if (!validDaysInMonth) {
+                cout << "\033[31mInvalid date: The month you entered doesn't have that many days.\033[0m\n";
+                continue;
+            }
+
+            validDate = true;
+        }
+
+        string formattedDay = (day < 10) ? "0" + to_string(day) : to_string(day);
+        string formattedMonth = (month < 10) ? "0" + to_string(month) : to_string(month);
+
+        return formattedDay + "/" + formattedMonth + "/" + to_string(year);
+    }
+};
+
 class Transaction {
 protected:
     string description;
@@ -32,7 +141,7 @@ public:
         category = c;
     }
 
-    // Setters and Getters 
+    // Setters and Getters
     void setDescription(string d) { description = d; }
     void setAmount(double a) { amount = a; }
     void setDate(string dt) { date = dt; }
@@ -50,7 +159,7 @@ struct Investment {
     int durationMonths;
     double amount;
     string date;
-    
+
     Investment(int opt, int dur, double amt, string dt) :  optionNumber(opt), durationMonths(dur), amount(amt), date(dt) {}
 };
 
@@ -135,7 +244,7 @@ public:
 			cout << "\033[31mError opening investments file!\033[0m" << endl;
 		}
 	}
-	
+
 	static vector<Investment> readInvestments() {
 		vector<Investment> investments;
 		ifstream file("investments.txt");
@@ -145,14 +254,14 @@ public:
 				size_t pos = 0;
 				string token;
 				vector<string> tokens;
-				
+
 				while ((pos = line.find(",")) != string::npos) {
 					token = line.substr(0, pos);
 					tokens.push_back(token);
 					line.erase(0, pos + 1);
 				}
 				tokens.push_back(line); // Last token
-				
+
 				if (tokens.size() == 4) {
 					investments.emplace_back(
                         stoi(tokens[0]),    // optionNumber
@@ -172,21 +281,21 @@ public:
 
 	static void viewInvestments() {
 		vector<Investment> investments = readInvestments();
-		
+
 		if (investments.empty()) {
 			cout << "\033[33mNo investments found!\033[0m" << endl;
 			return;
 		}
-		
+
 		cout << "\n==== Your Investments ====\n";
 		for (const auto& investment : investments) {
 			cout << "\033[36mInvestment Option: \033[0m" << investment.optionNumber << endl;
 			cout << "\033[36mAmount Invested: \033[0m$" << fixed << setprecision(2) << investment.amount << endl;
 			cout << "\033[36mDuration: \033[0m" << investment.durationMonths << " months" << endl;
             cout << "\033[36mDate Invested: \033[0m" << investment.date << endl;
-			
+
 			double monthlyROI = 0.01; // Default 1% monthly return
-			
+
 			switch (investment.optionNumber) {
 				case 1: monthlyROI = 0.03; break;    // High Risk
 				case 2: monthlyROI = 0.01; break;    // Low Risk
@@ -209,10 +318,10 @@ public:
 				case 19: monthlyROI = 0.005; break;  // Art and Collectibles
 				case 20: monthlyROI = 0.007; break;  // Carbon Credit
 			}
-			
+
 			double expectedProfit = investment.amount * monthlyROI * investment.durationMonths;
 			cout << "\033[32mExpected Profit: \033[0m$" << fixed << setprecision(2) << expectedProfit << endl;
-			cout << "\033[32mTotal Expected Value: \033[0m$" << fixed << setprecision(2) 
+			cout << "\033[32mTotal Expected Value: \033[0m$" << fixed << setprecision(2)
                  << (investment.amount + expectedProfit) << endl;
 			cout << "------------------------" << endl;
 		}
@@ -392,7 +501,7 @@ public:
 	static void deleteTransaction(string description) {
 		// Delete from transactions.txt
         Filemanager::deleteTransaction(description);
-        
+
         // Also need to delete from income.txt and expense.txt
         // Delete from income.txt
         vector<Income> incomes = Income::readFromFile();
@@ -408,7 +517,7 @@ public:
         } else {
             cout << "\033[31mError opening income file!\033[0m" << endl;
         }
-        
+
         // Delete from expense.txt
         vector<Expense> expenses = Expense::readFromFile();
         ofstream expenseFile("expense.txt");
@@ -482,8 +591,7 @@ public:
 		cin >> bal;
 		cout << "Please Enter The Duration In Months\n";
 		cin >> m;
-		cout << "Please Enter the Investment Date (YYYY-MM-DD): ";
-		cin	>> date;  // Collect the investment date
+		date = Validator::validateDate();
 
 		// Save the investment to the file
 		Filemanager::saveInvestment(x, m, bal, date);
@@ -497,7 +605,7 @@ public:
 		this_thread::sleep_for(chrono::seconds(2)); // 2 seconds delay
 		cout << "Investment processed successfully!" << endl;
 
-		
+
 
 		switch (x)
 		{
@@ -666,7 +774,7 @@ public:
 		}
 	}
 
-	
+
 };
 
 class screen {
@@ -678,21 +786,19 @@ public:
 
 class UserInterface {
 public:
-	static void displayMenu() {
-		cout << "=================================" << endl;
-		cout << "\033[92m	Byte Masters!\033[0m" << endl;
-		cout << "\033[32mWelcome to the Finance Manager!\033[0m" << endl;
-		cout << "=================================" << endl;
-		cout << "\033[36m1. Add Income\033[0m" << endl;
-		cout << "\033[36m2. Add Expense\033[0m" << endl;
-		cout << "\033[36m3. View Income\033[0m" << endl;
-		cout << "\033[36m4. View Expense\033[0m" << endl;
-		cout << "\033[36m5. View All Transactions\033[0m" << endl;
-		cout << "\033[36m6. Delete Transaction\033[0m" << endl;
-		cout << "\033[36m7. Investment Suggestions\033[0m" << endl;
-		cout << "\033[36m8. View Investments\033[0m" << endl;
-		cout << "\033[31m9. Exit\033[0m" << endl;
-	}
+
+static void displayMenu() {
+    cout << "=================================" << endl;
+    cout << "\033[92m	Byte Masters!\033[0m" << endl;
+    cout << "\033[32mWelcome to the Finance Manager!\033[0m" << endl;
+    cout << "=================================" << endl;
+    cout << "\033[36m1. Add Income\033[0m" << endl;
+    cout << "\033[36m2. Add Expense\033[0m" << endl;
+    cout << "\033[36m3. Delete Transaction\033[0m" << endl;
+    cout << "\033[36m4. Investment Suggestions\033[0m" << endl;
+    cout << "\033[36m5. Stats & Reports\033[0m" << endl;
+    cout << "\033[31m6. Exit\033[0m" << endl;
+}
 
 	static void displayLoading() {
 		cout << "\033[33mLoading...\033[0m" << endl;
@@ -703,84 +809,122 @@ public:
 		cout << endl;
 	}
 
-	static void handleUserChoice(int choice) {
-		switch (choice) {
-		case 1: {
-			string description, date, category;
-			double amount;
-			cout << "\033[33mEnter income description: \033[0m";
-			cin.ignore();
-			getline(cin, description);
-			cout << "\033[32mEnter income amount: \033[0m";
-			cin >> amount;
-			cout << "\033[33mEnter income date (YYYY-MM-DD): \033[0m";
-			cin >> date;
-			cout << "\033[33mEnter income category: \033[0m";
-			cin.ignore();
-			getline(cin, category);
-			FinananceManager::addIncome(description, amount, date, category);
-			break;
-		}
-		case 2: {
-			string description, date, category;
-			double amount;
-			cout << "\033[33mEnter expense description: \033[0m";
-			cin.ignore();
-			getline(cin, description);
-			cout << "\033[32mEnter expense amount: \033[0m";
-			cin >> amount;
-			cout << "\033[33mEnter expense date (YYYY-MM-DD): \033[0m";
-			cin >> date;
-			cout << "\033[33mEnter expense category: \033[0m";
-			cin.ignore();
-			getline(cin, category);
-			FinananceManager::addExpense(description, amount, date, category);
-			break;
-		}
-		case 3:
-			screen::clear();
-			FinananceManager::viewIncome();
-			system("pause");
-			break;
-		case 4:
-			screen::clear();
-			FinananceManager::viewExpense();
-			system("pause");
-			break;
-		case 5:
-			screen::clear();
-			FinananceManager::viewAllTransactions();
-			system("pause");
-			break;
-		case 6: {
-			string description;
-			cout << "\033[36mEnter the description of the transaction to delete: \033[0m";
-			cin.ignore();
-			getline(cin, description);
-			FinananceManager::deleteTransaction(description);
-			break;
-		}
-		case 7:
-			screen::clear();
-			FinananceManager::suggestInvestmentsAndOptions();
-			system("pause");
-			break;
-		
-		case 8:
-			screen::clear();
-			FinananceManager::displayInvestments();
-			system("pause");
-			break;
-			
-		case 9:
-			screen::clear();
-			cout << "\033[31mExit \033[0m" << endl;
-			break;
-		default:
-			cout << "\033[31mInvalid choice! Please try again.\033[0m" << endl;
-			break;
-		}
-	}
+	static void displayStatsMenu() {
+    cout << "=================================" << endl;
+    cout << "\033[92m     Finance Statistics Menu\033[0m" << endl;
+    cout << "=================================" << endl;
+    cout << "\033[36m1. View Income\033[0m" << endl;
+    cout << "\033[36m2. View Expense\033[0m" << endl;
+    cout << "\033[36m3. View All Transactions\033[0m" << endl;
+    cout << "\033[36m4. View Investments\033[0m" << endl;
+    cout << "\033[36m5. Return to Main Menu\033[0m" << endl;
+    cout << "\033[32mEnter your choice: \033[0m";
+}
+
+	static void handleStatsChoice() {
+    int statsChoice;
+    do {
+        screen::clear();
+        displayStatsMenu();
+        cin >> statsChoice;
+
+        switch (statsChoice) {
+            case 1:
+                screen::clear();
+                FinananceManager::viewIncome();
+                system("pause");
+                break;
+            case 2:
+                screen::clear();
+                FinananceManager::viewExpense();
+                system("pause");
+                break;
+            case 3:
+                screen::clear();
+                FinananceManager::viewAllTransactions();
+                system("pause");
+                break;
+            case 4:
+                screen::clear();
+                FinananceManager::displayInvestments();
+                system("pause");
+                break;
+            case 5:
+                cout << "\033[33mReturin to the main menu...\033[0m" << endl;
+                			this_thread::sleep_for(chrono::milliseconds(500));
+                break;
+            default:
+                cout << "\033[31mInvalid choicse! Please try again.\033[0m" << endl;
+                system("pause");
+                break;
+        }
+    } while (statsChoice != 5);
+}
+
+
+static void handleUserChoice(int choice) {
+    switch (choice) {
+    case 1: {
+        string description, date, category;
+        double amount;
+
+        category = Validator::selectIncomeCategory();
+
+        cout << "\033[33mEnter income description: \033[0m";
+        cin.ignore();
+        getline(cin, description);
+
+        cout << "\033[32mEnter income amount: \033[0m";
+        cin >> amount;
+
+        date = Validator::validateDate();
+
+        FinananceManager::addIncome(description, amount, date, category);
+        break;
+    }
+    case 2: {
+        string description, date, category;
+        double amount;
+
+        category = Validator::selectExpenseCategory();
+
+        cout << "\033[33mEnter expense description: \033[0m";
+        cin.ignore();
+        getline(cin, description);
+
+        cout << "\033[32mEnter expense amount: \033[0m";
+        cin >> amount;
+
+        date = Validator::validateDate();
+
+        FinananceManager::addExpense(description, amount, date, category);
+        break;
+    }
+    case 3: {
+        string description;
+        cout << "\033[36mEnter the description of the transaction to delete: \033[0m";
+        cin.ignore();
+        getline(cin, description);
+        FinananceManager::deleteTransaction(description);
+        break;
+    }
+    case 4:
+        screen::clear();
+        FinananceManager::suggestInvestmentsAndOptions();
+        system("pause");
+        break;
+    case 5:
+        handleStatsChoice();
+        break;
+    case 6:
+        screen::clear();
+        cout << "\033[31mExit \033[0m" << endl;
+        break;
+    default:
+        cout << "\033[31mInvalid choise! Please try again.\033[0m" << endl;
+        break;
+    }
+}
 };
 
 int main() {
@@ -791,6 +935,6 @@ int main() {
 		cout << "\033[32mEnter your choice: \033[0m";
 		cin >> choice;
 		UserInterface::handleUserChoice(choice);
-	} while (choice != 8);
+	} while (choice != 6);
 	return 0;
 }
