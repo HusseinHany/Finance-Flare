@@ -3,623 +3,1032 @@
 #include <fstream>
 #include <vector>
 #include <iomanip>
-#include <thread> 
+#include <thread>
 #include <chrono>
+#include <cstdlib>
 using namespace std;
+
+// Forward declarations
+class FinananceManager;
 
 class RecordType {
 public:
-	static const int income = 0;
-	static const int expense = 1;
+    static const int income = 0;
+    static const int expense = 1;
+};
 
+// Utility class for investment calculations
+class InvestmentUtil {
+public:
+    static double getMonthlyROI(int optionNumber) {
+        switch (optionNumber) {
+        case 1: return 0.38;     // High-risk Investment
+        case 2: return 0.36;     // Venture Capital
+        case 3: return 0.28;     // Stock Market Investment
+        case 4: return 0.26;     // Hedge Funds
+        case 5: return 0.24;     // Medium-risk Investment
+        case 6: return 0.20;     // Real Estate Investment
+        case 7: return 0.18;     // Peer-to-Peer Lending
+        case 8: return 0.14;     // Precious Metals (Gold/Silver)
+        case 9: return 0.12;     // Low-risk Investment
+        case 10: return 0.11;    // Cryptocurrency Investment
+        case 11: return 0.098;   // Bonds
+        case 12: return 0.09;    // Mutual Funds
+        case 13: return 0.084;   // Art and Collectibles
+        case 14: return 0.065;   // Savings Account
+        case 15: return 0.06;    // Carbon Credit Investment
+        case 16: return 0.036;   // Emergency Fund
+        case 17: return 0.032;   // Diversified Portfolio
+        case 18: return 0.03;    // Retirement Account
+        case 19: return 0.02;    // Investment in Health
+        case 20: return 0.012;   // Investment in Education
+        default: return 0.01;    // Default 1%
+        }
+    }
+};
+
+class Validator {
+public:
+    static string selectIncomeCategory() {
+        vector<string> categories = { "Salary", "Business", "Investment", "Gift", "Other" };
+
+        cout << "\n\033[33m=== Select Income Category ===\033[0m\n";
+        for (size_t i = 0; i < categories.size(); i++) {
+            cout << "\033[33m" << i + 1 << ". " << "\033[0m" << categories[i] << endl;
+        }
+
+        int choice;
+        cout << "Enter your choice (1-" << categories.size() << "): ";
+        cin >> choice;
+
+        while (choice < 1 || choice > static_cast<int>(categories.size()) || cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "\033[31mInvalid choice. Please try again: \033[0m";
+            cin >> choice;
+        }
+
+        return categories[choice - 1];
+    }
+
+    static string selectExpenseCategory() {
+        vector<string> categories = { "Food", "Housing", "Transportation", "Entertainment",
+                                   "Shopping", "Utilities", "Healthcare", "Education",
+                                   "Personal", "Other" };
+
+        cout << "\n\033[33m=== Select Expense Category ===\033[0m\n";
+        for (size_t i = 0; i < categories.size(); i++) {
+            cout << "\033[33m" << i + 1 << ". " << "\033[0m" << categories[i] << endl;
+        }
+
+        int choice;
+        cout << "Enter your choise (1-" << categories.size() << "): ";
+        cin >> choice;
+
+        while (choice < 1 || choice > static_cast<int>(categories.size()) || cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "\033[31mInvalid choice. Please try again : \033[0m";
+            cin >> choice;
+        }
+
+        return categories[choice - 1];
+    }
+
+    static string validateDate() {
+        int day, month, year;
+        bool validDate = false;
+
+        while (!validDate) {
+            cout << "\033[33mEnter day (1-31): \033[0m";
+            cin >> day;
+
+            while (day < 1 || day > 31 || cin.fail()) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "\033[31mInvalid day. Please enter a valuue between 1 and 31: \033[0m";
+                cin >> day;
+            }
+
+            cout << "\033[33mEnter month (1-12): \033[0m";
+            cin >> month;
+
+            while (month < 1 || month > 12 || cin.fail()) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "\033[31mInvalid month. Please enter a value between 1 and 12: \033[0m";
+                cin >> month;
+            }
+
+            cout << "\033[33menter year (e.g., 2025): \033[0m";
+            cin >> year;
+
+            while (year < 2000 || year > 2030 || cin.fail()) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "\033[31minvalid year. Please enter a value between 2000 and 2030 : \033[0m";
+                cin >> year;
+            }
+
+            bool validDaysInMonth = true;
+
+            if ((month == 4 || month == 6 || month == 9 || month == 11) && day > 30) {
+                validDaysInMonth = false;
+            }
+            else if (month == 2) {
+                bool isLeapYear = (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
+                if ((isLeapYear && day > 29) || (!isLeapYear && day > 28)) {
+                    validDaysInMonth = false;
+                }
+            }
+
+            if (!validDaysInMonth) {
+                cout << "\033[31mInvalid date: The month you entered doesn't have that many days.\033[0m\n";
+                continue;
+            }
+
+            validDate = true;
+        }
+
+        string formattedDay = (day < 10) ? "0" + to_string(day) : to_string(day);
+        string formattedMonth = (month < 10) ? "0" + to_string(month) : to_string(month);
+
+        return formattedDay + "/" + formattedMonth + "/" + to_string(year);
+    }
 };
 
 class Transaction {
-
 protected:
-	string description;
-	double amount;
-	string date;
-	string category;
+    string description;
+    double amount;
+    string date;
+    string category;
 
 public:
+    // Parameterized Constructor
+    Transaction(string d, double a, string dt, string c) {
+        description = d;
+        amount = a;
+        date = dt;
+        category = c;
+    }
 
-	// Constructor
-	Transaction(string d, double a, string dt, string c) {
-		description = d;
-		amount = a;
-		date = dt;
-		category = c;
-	}
+    // Setters and Getters
+    void setDescription(string d) { description = d; }
+    void setAmount(double a) { amount = a; }
+    void setDate(string dt) { date = dt; }
+    void setCategory(string c) { category = c; }
 
-	// Setters 
-	void setDescription(string d) {
-		description = d;
-	}
-	void setAmount(double a) {
-		amount = a;
-	}
-	void setDate(string dt) {
-		date = dt;
-	}
-	void setCategory(string c) {
-		category = c;
-	}
-	// Getters
-	string getDescription() const {
-		return description;
-	}
-	double getAmount() const {
-		return amount;
-	}
-	string getDate() const {
-		return date;
-	}
-	string getCategory() const {
-		return category;
-	}
+    string getDescription() const { return description; }
+    double getAmount() const { return amount; }
+    string getDate() const { return date; }
+    string getCategory() const { return category; }
+    virtual ~Transaction() {}
+};
 
+struct Investment {
+    int optionNumber;
+    int durationMonths;
+    double amount;
+    string date;
+
+    Investment(int opt, int dur, double amt, string dt) : optionNumber(opt), durationMonths(dur), amount(amt), date(dt) {}
+};
+
+class Filemanager {
+public:
+    static void saveTransaction(const Transaction& transaction) {
+        ofstream file("transactions.txt", ios::app);
+        if (file.is_open()) {
+            file << transaction.getDescription() << "," << transaction.getAmount() << "," << transaction.getDate() << "," << transaction.getCategory() << endl;
+            file.close();
+        }
+        else {
+            cout << "\033[31mError opening file!\033[0m" << endl;
+        }
+    }
+
+    static vector<Transaction> readTransactions() {
+        vector<Transaction> transactions;
+        ifstream file("transactions.txt");
+        if (file.is_open()) {
+            string line;
+            while (getline(file, line)) {
+                size_t pos = 0;
+                string token;
+                vector<string> tokens;
+
+                // Split the line by commas
+                while ((pos = line.find(",")) != string::npos) {
+                    token = line.substr(0, pos);
+                    tokens.push_back(token);
+                    line.erase(0, pos + 1);
+                }
+                tokens.push_back(line); // Last token
+
+                // Create a Transaction object if all fields are present
+                if (tokens.size() == 4) {
+                    transactions.emplace_back(tokens[0], stod(tokens[1]), tokens[2], tokens[3]);
+                }
+            }
+            file.close();
+        }
+        else {
+            cout << "Error opening file!" << endl;
+        }
+        return transactions;
+    }
+
+    static void displayTransactions() {
+        vector<Transaction> transactions = readTransactions();
+        for (const auto& transaction : transactions) {
+            cout << "Description: " << transaction.getDescription() << endl;
+            cout << "Amount: $" << transaction.getAmount() << endl;
+            cout << "Date: " << transaction.getDate() << endl;
+            cout << "Category: " << transaction.getCategory() << endl;
+            cout << "------------------------" << endl;
+        }
+    }
+
+    static void deleteTransaction(const string& description) {
+        vector<Transaction> transactions = readTransactions();
+        ofstream file("transactions.txt");
+        if (file.is_open()) {
+            for (const auto& transaction : transactions) {
+                if (transaction.getDescription() != description) {
+                    file << transaction.getDescription() << "," << transaction.getAmount() << "," << transaction.getDate() << "," << transaction.getCategory() << endl;
+                }
+            }
+            file.close();
+        }
+        else {
+            cout << "\033[31mError opening file!\033[0m" << endl;
+        }
+    }
+
+    static void saveInvestment(const int& optionNumber, const int& durationMonths, const double& amount, const string& date) {
+        ofstream file("investments.txt", ios::app);
+        if (file.is_open()) {
+            file << optionNumber << "," << durationMonths << "," << amount << "," << date << endl;
+            file.close();
+            cout << "\033[32mInvestment saved successfully!\033[0m" << endl;
+        }
+        else {
+            cout << "\033[31mError opening investments file!\033[0m" << endl;
+        }
+    }
+
+    static vector<Investment> readInvestments() {
+        vector<Investment> investments;
+        ifstream file("investments.txt");
+        if (file.is_open()) {
+            string line;
+            while (getline(file, line)) {
+                size_t pos = 0;
+                string token;
+                vector<string> tokens;
+
+                while ((pos = line.find(",")) != string::npos) {
+                    token = line.substr(0, pos);
+                    tokens.push_back(token);
+                    line.erase(0, pos + 1);
+                }
+                tokens.push_back(line); // Last token
+
+                if (tokens.size() == 4) {
+                    investments.emplace_back(
+                        stoi(tokens[0]),    // optionNumber
+                        stoi(tokens[1]),    // durationMonths
+                        stod(tokens[2]),    // amount
+                        tokens[3]           // date
+                    );
+                }
+            }
+            file.close();
+        }
+        else {
+            cout << "\033[31mInvestments file not found or could not be opened!\033[0m" << endl;
+        }
+        return investments;
+    }
+
+    static void viewInvestments() {
+        vector<Investment> investments = readInvestments();
+
+        if (investments.empty()) {
+            cout << "\033[33mNo investments found!\033[0m" << endl;
+            return;
+        }
+
+        cout << "\n==== Your Investments ====\n";
+        for (const auto& investment : investments) {
+            cout << "\033[36mInvestment Option: \033[0m" << investment.optionNumber << endl;
+            cout << "\033[36mAmount Invested: \033[0m$" << fixed << setprecision(2) << investment.amount << endl;
+            cout << "\033[36mDuration: \033[0m" << investment.durationMonths << " months" << endl;
+            cout << "\033[36mDate Invested: \033[0m" << investment.date << endl;
+
+            double monthlyROI = InvestmentUtil::getMonthlyROI(investment.optionNumber);
+            double expectedProfit = investment.amount * monthlyROI * investment.durationMonths;
+
+            cout << "\033[32mExpected Profit: \033[0m$" << fixed << setprecision(2) << expectedProfit << endl;
+            cout << "\033[32mTotal Expected Value: \033[0m$" << fixed << setprecision(2)
+                << (investment.amount + expectedProfit) << endl;
+            cout << "------------------------" << endl;
+        }
+    }
+
+    static double calculateTotalInvestments() {
+        vector<Investment> investments = readInvestments();
+        double totalInvested = 0.0;
+
+        for (const auto& investment : investments) {
+            totalInvested += investment.amount;
+        }
+        return totalInvested;
+    }
 };
 
 class Income : public Transaction {
-
 public:
-	// Constructor
+    Income(string d, double a, string dt, string c) : Transaction(d, a, dt, c) {
+        description = d;
+        amount = a;
+        date = dt;
+        category = c;
+    }
 
-	Income(string d, double a, string dt, string c) : Transaction(d, a, dt, c) {
-		description = d;
-		amount = a;
-		date = dt;
-		category = c;
-	}
+    void display() const {
+        cout << "\033[96m    ==== Income Transaction ==== \033[0m" << endl;
+        cout << "\033[92m" << "Income " << " | " << description << " | " << amount << "$" << " | " << date << " | " << category << "\033[0m" << endl;
+    }
 
-	void display() const {
-		cout << "Income Transaction: " << endl;
-		cout << "Description: " << description << endl;
-		cout << "Amount: $" << amount << endl;
-		cout << "Date: " << date << endl;
-		cout << "Category: " << category << endl;
-	}
+    void saveToFile() {
+        ofstream file("income.txt", ios::app);
+        if (file.is_open()) {
+            file << description << "," << amount << "," << date << "," << category << endl;
+            file.close();
+        }
+        else {
+            cout << "\033[31mError opening file!\033[0m" << endl;
+        }
+    }
 
-	void saveToFile() {
-		ofstream file("income.txt", ios::app);
-		if (file.is_open()) {
-			file << description << "," << amount << "," << date << "," << category << endl;
-			file.close();
-		}
-		else {
-			cout << "Error opening file!" << endl;
-		}
-	}
-	// Function to read income transactions from file
-	static vector<Income> readFromFile() {
-		vector<Income> transactions;
-		ifstream file("income.txt");
-		if (file.is_open()) {
-			string line;
-			while (getline(file, line)) {
-				size_t pos = 0;
-				string token;
-				vector<string> tokens;
-				while ((pos = line.find(",")) != string::npos) {
-					token = line.substr(0, pos);
-					tokens.push_back(token);
-					line.erase(0, pos + 1);
-				}
-				tokens.push_back(line); // Last token
-				if (tokens.size() == 4) {
-					transactions.push_back(Income(tokens[0], stod(tokens[1]), tokens[2], tokens[3]));
-				}
-			}
-			file.close();
-		}
-		else {
-			cout << "Error opening file!" << endl;
-		}
-		return transactions;
-	}
-	static double calculateTotal() {
-		double total = 0.0;
-		vector<Income> incomes = readFromFile();
-		for (const auto& income : incomes) {
-			total += income.getAmount();
-		}
-		return total;
-	}
+    static vector<Income> readFromFile() {
+        vector<Income> transactions;
+        ifstream file("income.txt");
+        if (file.is_open()) {
+            string line;
+            while (getline(file, line)) {
+                size_t pos = 0;
+                string token;
+                vector<string> tokens;
+                while ((pos = line.find(",")) != string::npos) {
+                    token = line.substr(0, pos);
+                    tokens.push_back(token);
+                    line.erase(0, pos + 1);
+                }
+                tokens.push_back(line); // Last token
+                if (tokens.size() == 4) {
+                    transactions.push_back(Income(tokens[0], stod(tokens[1]), tokens[2], tokens[3]));
+                }
+            }
+            file.close();
+        }
+        else {
+            cout << "\033[31mError opening file!\033[0m" << endl;
+        }
+        return transactions;
+    }
+
+    static double calculateTotal() {
+        double total = 0.0;
+        vector<Income> incomes = readFromFile();
+        for (const auto& income : incomes) {
+            total += income.getAmount();
+        }
+        return total;
+    }
 };
 
 class Expense : public Transaction {
 public:
-	// Constructor
-	Expense(string d, double a, string dt, string c) : Transaction(d, a, dt, c) {
-		description = d;
-		amount = a;
-		date = dt;
-		category = c;
-	}
-	void display() const {
-		cout << "Expense Transaction: " << endl;
-		cout << "Description: " << description << endl;
-		cout << "Amount: $" << amount << endl;
-		cout << "Date: " << date << endl;
-		cout << "Category: " << category << endl;
-	}
+    // Constructor
+    Expense(string d, double a, string dt, string c) : Transaction(d, a, dt, c) {
+        description = d;
+        amount = a;
+        date = dt;
+        category = c;
+    }
 
-	void saveToFile() {
-		ofstream file("expense.txt", ios::app);
-		if (file.is_open()) {
-			file << description << "," << amount << "," << date << "," << category << endl;
-			file.close();
-		}
-		else {
-			cout << "Error opening file!" << endl;
-		}
-	}
-	// Function to read expense transactions from file
-	static vector<Expense> readFromFile() {
-		vector<Expense> transactions;
-		ifstream file("expense.txt");
-		if (file.is_open()) {
-			string line;
-			while (getline(file, line)) {
-				size_t pos = 0;
-				string token;
-				vector<string> tokens;
-				while ((pos = line.find(",")) != string::npos) {
-					token = line.substr(0, pos);
-					tokens.push_back(token);
-					line.erase(0, pos + 1);
-				}
-				tokens.push_back(line); // Last token
-				if (tokens.size() == 4) {
-					transactions.push_back(Expense(tokens[0], stod(tokens[1]), tokens[2], tokens[3]));
-				}
-			}
-			file.close();
-		}
-		else {
-			cout << "Error opening file!" << endl;
-		}
-		return transactions;
-	}
-	static double calculateTotal() {
-		double total = 0.0;
-		vector<Expense> expenses = readFromFile();
-		for (const auto& expense : expenses) {
-			total += expense.getAmount();
-		}
-		return total;
-	}
-};
+    void display() const {
+        cout << "\033[96m    ==== Expense Transaction ==== \033[0m" << endl;
+        cout << "\033[92m" << "Expense " << " | " << description << " | " << amount << "$" << " | " << date << " | " << category << "\033[0m" << endl;
+    }
 
-class Filemanager : public Transaction {
+    void saveToFile() {
+        ofstream file("expense.txt", ios::app);
+        if (file.is_open()) {
+            file << description << "," << amount << "," << date << "," << category << endl;
+            file.close();
+        }
+        else {
+            cout << "\033[31mError opening file!\033[0m" << endl;
+        }
+    }
 
-public:
-	static void saveTransaction(const Transaction& transaction) {
-		ofstream file("transactions.txt", ios::app);
-		if (file.is_open()) {
-			file << transaction.getDescription() << "," << transaction.getAmount() << "," << transaction.getDate() << "," << transaction.getCategory() << endl;
-			file.close();
-		}
-		else {
-			cout << "Error opening file!" << endl;
-		}
-	}
+    // Function to read expense transactions from file
+    static vector<Expense> readFromFile() {
+        vector<Expense> transactions;
+        ifstream file("expense.txt");
+        if (file.is_open()) {
+            string line;
+            while (getline(file, line)) {
+                size_t pos = 0;
+                string token;
+                vector<string> tokens;
+                while ((pos = line.find(",")) != string::npos) {
+                    token = line.substr(0, pos);
+                    tokens.push_back(token);
+                    line.erase(0, pos + 1);
+                }
+                tokens.push_back(line); // Last token
+                if (tokens.size() == 4) {
+                    transactions.push_back(Expense(tokens[0], stod(tokens[1]), tokens[2], tokens[3]));
+                }
+            }
+            file.close();
+        }
+        else {
+            cout << "\033[31mError opening file!\033[0m" << endl;
+        }
+        return transactions;
+    }
 
-	static vector<Transaction> readTransactions() {
-		vector<Transaction> transactions;
-		ifstream file("transactions.txt");
-		if (file.is_open()) {
-			string line;
-			while (getline(file, line)) {
-				size_t pos = 0;
-				string token;
-				vector<string> tokens;
-				while ((pos = line.find(",")) != string::npos) {
-					token = line.substr(0, pos);
-					tokens.push_back(token);
-					line.erase(0, pos + 1);
-				}
-				tokens.push_back(line); // Last token
-				if (tokens.size() == 4) {
-					transactions.push_back(Transaction(tokens[0], stod(tokens[1]), tokens[2], tokens[3]));
-				}
-			}
-			file.close();
-		}
-		else {
-			cout << "Error opening file!" << endl;
-		}
-		return transactions;
-	}
-
-	static void displayTransactions() {
-		vector<Transaction> transactions = readTransactions();
-		for (const auto& transaction : transactions) {
-			cout << "Description: " << transaction.getDescription() << endl;
-			cout << "Amount: $" << transaction.getAmount() << endl;
-			cout << "Date: " << transaction.getDate() << endl;
-			cout << "Category: " << transaction.getCategory() << endl;
-			cout << "------------------------" << endl;
-		}
-	}
-
-
+    static double calculateTotal() {
+        double total = 0.0;
+        vector<Expense> expenses = readFromFile();
+        for (const auto& expense : expenses) {
+            total += expense.getAmount();
+        }
+        return total;
+    }
 };
 
 class FinananceManager {
-
 public:
-	static void addIncome(string description, double amount, string date, string category) {
-		Income income(description, amount, date, category);
-		income.saveToFile();
-	}
-	static void addExpense(string description, double amount, string date, string category) {
-		Expense expense(description, amount, date, category);
-		expense.saveToFile();
-	}
-	static void viewIncome() {
-		vector<Income> incomes = Income::readFromFile();
-		for (const auto& income : incomes) {
-			income.display();
-			cout << "------------------------" << endl;
-		}
-	}
-	static void viewExpense() {
-		vector<Expense> expenses = Expense::readFromFile();
-		for (const auto& expense : expenses) {
-			expense.display();
-			cout << "------------------------" << endl;
-		}
-	}
-	static void viewAllTransactions() {
-		Filemanager::displayTransactions();
-	}
-	static void deleteTransaction(string description) {
-		vector<Transaction> transactions = Filemanager::readTransactions();
-		ofstream file("transactions.txt");
-		if (file.is_open()) {
-			for (const auto& transaction : transactions) {
-				if (transaction.getDescription() != description) {
-					file << transaction.getDescription() << "," << transaction.getAmount() << "," << transaction.getDate() << "," << transaction.getCategory() << endl;
-				}
-			}
-			file.close();
-		}
-		else {
-			cout << "Error opening file!" << endl;
-		}
-	}
+    static void addIncome(string description, double amount, string date, string category) {
+        Income income(description, amount, date, category);
+        income.saveToFile();
+        // Added: Save to transactions.txt as well
+        Filemanager::saveTransaction(income);
+    }
 
-	static void suggestInvestmentsAndOptions() {
-		double totalIncome = Income::calculateTotal();
-		double totalExpenses = Expense::calculateTotal();
-		double balance = totalIncome - totalExpenses;
+    static void addExpense(string description, double amount, string date, string category) {
+        Expense expense(description, amount, date, category);
+        expense.saveToFile();
+        // Added: Save to transactions.txt as well
+        Filemanager::saveTransaction(expense);
+    }
 
-		if (balance <= 0) {
-			cout << "\nYou currently don't have a positive balance for investment in your accounts.\n";
-			return;
-		}
+    static void viewIncome() {
+        vector<Income> incomes = Income::readFromFile();
+        for (const auto& income : incomes) {
+            income.display();
+            cout << "----------------------------------" << endl;
+        }
+    }
 
-		cout << "\n=== Investment Suggestions ===\n";
-		cout << "Your Total Income: $" << fixed << setprecision(2) << totalIncome << endl;
-		cout << "Your Total Expenses: $" << fixed << setprecision(2) << totalExpenses << endl;
-		cout << "Your Available Balance: $" << fixed << setprecision(2) << balance << endl << endl;
+    static void viewExpense() {
+        vector<Expense> expenses = Expense::readFromFile();
+        for (const auto& expense : expenses) {
+            expense.display();
+            cout << "----------------------------------" << endl;
+        }
+    }
 
-		if (balance < 10000) {
-			cout << "Emergency Fund: $" << fixed << setprecision(2) << (balance * 0.8) << endl;
-			cout << "Low-risk Investment: $" << fixed << setprecision(2) << (balance * 0.2) << endl;
-		}
+    static void displayInvestments() {
+        Filemanager::viewInvestments();
+    }
 
-		else {
-			cout << "Analyzing your balance. Please wait...\n";
-			this_thread::sleep_for(chrono::seconds(7)); // 7 seconds delay
-			cout << "1. High-risk Investment: $ -> (36%) " << fixed << setprecision(2) << endl;
-			cout << "2. Low-risk Investment: $ -> (12%) " << fixed << setprecision(2) << endl;
-			cout << "3. Medium-risk Investment: $ -> (24%) " << fixed << setprecision(2) << endl;
-			cout << "4. Cryptocurrency Investment: $ -> (9%) " << fixed << setprecision(2) << endl;
-			cout << "5. Diversified Portfolio: $ -> (3%) " << fixed << setprecision(2) << endl;
-			cout << "6. Savings Account: $ -> (6%) " << fixed << setprecision(2) << endl;
-			cout << "7. Retirement Account: $ -> (3%) " << fixed << setprecision(2) << endl;
-			cout << "8. Emergency Fund: $ -> (3.6%) " << fixed << setprecision(2) << endl;
-			cout << "9. Investment in Education: $ -> (1.2%) " << fixed << setprecision(2) << endl;
-			cout << "10. Investment in Health: $ -> (2%) " << fixed << setprecision(2) << endl;
-			cout << "11. Real Estate Investment: $ -> (18%) " << fixed << setprecision(2) << endl;
-			cout << "12. Bonds: $ -> (9%) " << fixed << setprecision(2) << endl;
-			cout << "13. Mutual Funds: $ -> (9%) " << fixed << setprecision(2) << endl;
-			cout << "14. Stock Market Investment: $ -> (24%) " << fixed << setprecision(2) << endl;
-			cout << "15. Precious Metals (Gold/Silver): $ -> (12%) " << fixed << setprecision(2) << endl;
-			cout << "16. Peer-to-Peer Lending: $ -> (18%) " << fixed << setprecision(2) << endl;
-			cout << "17. Hedge Funds: $ -> (24%) " << fixed << setprecision(2) << endl;
-			cout << "18. Venture Capital: $ -> (36%) " << fixed << setprecision(2) << endl;
-			cout << "19. Art and Collectibles: $ -> (8.4%) " << fixed << setprecision(2) << endl;
-			cout << "20. Carbon Credit Investment: $ -> (6%) " << fixed << setprecision(2) << endl;
-		}
+    static void viewAllTransactions() {
+        Filemanager::displayTransactions();
+    }
 
-		int x, m;
-		double bal;
-		cout << "Choose What Is the Most Sutable case For You\n";
-		cin >> x;
-		cout << "Please Enter The Amount You Want To Invest\n";
-		cin >> bal;
-		cout << "Please Enter The Duration In Months\n";
-		cin >> m;
+    static void deleteTransaction(string description) {
+        // Delete from transactions.txt
+        Filemanager::deleteTransaction(description);
 
-		cout << "You Have Chosen Investment Option " << x << " with an amount of $" << fixed << setprecision(2) << bal << " for a duration of " << m << " months." << endl;
-		cout << "Your investment will be monitored and adjusted based on market conditions." << endl;
-		cout << "Please wait while we process your investment...\n";
-		this_thread::sleep_for(chrono::seconds(3)); // 7 seconds delay
-		cout << "Investment processed successfully!" << endl;
+        // Also need to delete from income.txt and expense.txt
+        // Delete from income.txt
+        vector<Income> incomes = Income::readFromFile();
+        ofstream incomeFile("income.txt");
+        if (incomeFile.is_open()) {
+            for (const auto& income : incomes) {
+                if (income.getDescription() != description) {
+                    incomeFile << income.getDescription() << "," << income.getAmount() << ","
+                        << income.getDate() << "," << income.getCategory() << endl;
+                }
+            }
+            incomeFile.close();
+        }
+        else {
+            cout << "\033[31mError opening income file!\033[0m" << endl;
+        }
 
-		switch (x)
-		{
-		case 1: {
-			double highRiskROI = 0.03;  // 3% monthly ROI
-			double highRiskProfit = bal * highRiskROI * m;
-			cout << "High-risk Investment: $" << fixed << setprecision(2) << balance << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << highRiskProfit << endl;
-			break;
-		}
-		case 2: {
-			double lowRiskROI = 0.01;  // 1% monthly ROI
-			double lowRiskProfit = bal * lowRiskROI * m;
-			cout << "Low-risk Investment: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << lowRiskProfit << endl;
-			break;
-		}
-		case 3: {
-			double mediumRiskROI = 0.02;  // 2% monthly ROI
-			double mediumRiskProfit = bal * mediumRiskROI * m;
-			cout << "Medium-risk Investment: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << mediumRiskProfit << endl;
-			break;
-		}
-		case 4: {
-			double cryptoROI = 0.0167;  // 1.67% monthly ROI
-			double cryptoProfit = bal * cryptoROI * m;
-			cout << "Cryptocurrency Investment: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << cryptoProfit << endl;
-			break;
-		}
-		case 5: {
-			double diversifiedROI = 0.0075;  // 0.75% monthly ROI
-			double diversifiedProfit = bal * diversifiedROI * m;
-			cout << "Diversified Portfolio: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << diversifiedProfit << endl;
-			break;
-		}
-		case 6: {
-			double savingsAccountROI = 0.0025;  // 0.25% monthly ROI
-			double savingsProfit = bal * savingsAccountROI * m;
-			cout << "Savings Account: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << savingsProfit << endl;
-			break;
-		}
-		case 7: {
-			double retirementAccountROI = 0.005;  // 0.5% monthly ROI
-			double retirementProfit = bal * retirementAccountROI * m;
-			cout << "Retirement Account: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << retirementProfit << endl;
-			break;
-		}
-		case 8: {
-			double emergencyFundROI = 0.003;  // 0.3% monthly ROI
-			double emergencyFundProfit = bal * emergencyFundROI * m;
-			cout << "Emergency Fund: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << emergencyFundProfit << endl;
-			break;
-		}
-		case 9: {
-			double educationROI = 0.001;  // 0.1% monthly ROI
-			double educationProfit = bal * educationROI * m;
-			cout << "Investment in Education: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << educationProfit << endl;
-			break;
-		}
-		case 10: {
-			double healthROI = 0.001;  // 0.1% monthly ROI
-			double healthProfit = bal * healthROI * m;
-			cout << "Investment in Health: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << healthProfit << endl;
-			break;
-		}
-		case 11: {
-			double realEstateROI = 0.015;  // 1.5% monthly ROI
-			double realEstateProfit = bal * realEstateROI * m;
-			cout << "Real Estate Investment: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << realEstateProfit << endl;
-			break;
-		}
-		case 12: {
-			double bondsROI = 0.005;  // 0.5% monthly ROI
-			double bondsProfit = bal * bondsROI * m;
-			cout << "Bonds: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << bondsProfit << endl;
-			break;
-		}
-		case 13: {
-			double mutualFundsROI = 0.0075;  // 0.75% monthly ROI
-			double mutualFundsProfit = bal * mutualFundsROI * m;
-			cout << "Mutual Funds: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << mutualFundsProfit << endl;
-			break;
-		}
-		case 14: {
-			double stockMarketROI = 0.02;  // 2% monthly ROI
-			double stockMarketProfit = bal * stockMarketROI * m;
-			cout << "Stock Market Investment: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << stockMarketProfit << endl;
-			break;
-		}
-		case 15: {
-			double preciousMetalsROI = 0.01;  // 1% monthly ROI
-			double preciousMetalsProfit = bal * preciousMetalsROI * m;
-			cout << "Precious Metals (Gold/Silver): $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << preciousMetalsProfit << endl;
-			break;
-		}
-		case 16: {
-			double peerToPeerROI = 0.015;  // 1.5% monthly ROI
-			double peerToPeerProfit = bal * peerToPeerROI * m;
-			cout << "Peer-to-Peer Lending: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << peerToPeerProfit << endl;
-			break;
-		}
-		case 17: {
-			double hedgeFundsROI = 0.02;  // 2% monthly ROI
-			double hedgeFundsProfit = bal * hedgeFundsROI * m;
-			cout << "Hedge Funds: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << hedgeFundsProfit << endl;
-			break;
-		}
-		case 18: {
-			double ventureCapitalROI = 0.03;  // 3% monthly ROI
-			double ventureCapitalProfit = bal * ventureCapitalROI * m;
-			cout << "Venture Capital: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << ventureCapitalProfit << endl;
-			break;
-		}
-		case 19: {
-			double artAndCollectiblesROI = 0.005;  // 0.5% monthly ROI
-			double artAndCollectiblesProfit = bal * artAndCollectiblesROI * m;
-			cout << "Art and Collectibles: $" << fixed << setprecision(2) << bal << endl;
-			this_thread::sleep_for(chrono::seconds(1));
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << artAndCollectiblesProfit << endl;
-			break;
-		}
-		case 20: {
-			double carbonCreditROI = 0.007;  // 0.7% monthly ROI
-			double carbonCreditProfit = bal * carbonCreditROI * m;
-			cout << "Carbon Credit Investment: $" << fixed << setprecision(2) << bal << endl;
-			cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << carbonCreditProfit << endl;
-			break;
-		}
-		default:
-			cout << "Invalid choice! Please try again." << endl;
-			break;
-		}
-	}
-};
+        // Delete from expense.txt
+        vector<Expense> expenses = Expense::readFromFile();
+        ofstream expenseFile("expense.txt");
+        if (expenseFile.is_open()) {
+            for (const auto& expense : expenses) {
+                if (expense.getDescription() != description) {
+                    expenseFile << expense.getDescription() << "," << expense.getAmount() << ","
+                        << expense.getDate() << "," << expense.getCategory() << endl;
+                }
+            }
+            expenseFile.close();
+        }
+        else {
+            cout << "\033[31mError opening expense file!\033[0m" << endl;
+        }
+    }
 
-class UserInterface {
-public:
-	static void displayMenu() {
-		cout << "Welcome to the Finance Manager!" << endl;
-		cout << "1. Add Income" << endl;
-		cout << "2. Add Expense" << endl;
-		cout << "3. View Income" << endl;
-		cout << "4. View Expense" << endl;
-		cout << "5. View All Transactions" << endl;
-		cout << "6. Delete Transaction" << endl;
-		cout << "7. Investment Suggestions" << endl;
-		cout << "8. Exit" << endl;
-	}
+    static void suggestInvestmentsAndOptions() {
+        double totalIncome = Income::calculateTotal();
+        double totalExpenses = Expense::calculateTotal();
+        double totalInvested = Filemanager::calculateTotalInvestments();
+        double balance = totalIncome - totalExpenses;
+        double availableBalance = balance - totalInvested;
 
-	static void handleUserChoice(int choice) {
-		switch (choice) {
-		case 1: {
-			string description, date, category;
-			double amount;
-			cout << "Enter income description: ";
-			cin.ignore();
-			getline(cin, description);
-			cout << "Enter income amount: ";
-			cin >> amount;
-			cout << "Enter income date (YYYY-MM-DD): ";
-			cin >> date;
-			cout << "Enter income category: ";
-			cin.ignore();
-			getline(cin, category);
-			FinananceManager::addIncome(description, amount, date, category);
-			break;
-		}
-		case 2: {
-			string description, date, category;
-			double amount;
-			cout << "Enter expense description: ";
-			cin.ignore();
-			getline(cin, description);
-			cout << "Enter expense amount: ";
-			cin >> amount;
-			cout << "Enter expense date (YYYY-MM-DD): ";
-			cin >> date;
-			cout << "Enter expense category: ";
-			cin.ignore();
-			getline(cin, category);
-			FinananceManager::addExpense(description, amount, date, category);
-			break;
-		}
-		case 3:
-			screen::clear();
-			FinananceManager::viewIncome();
-			system("pause");
-			break;
-		case 4:
-			screen::clear();
-			FinananceManager::viewExpense();
-			system("pause");
-			break;
-		case 5:
-			screen::clear();
-			FinananceManager::viewAllTransactions();
-			system("pause");
-			break;
-		case 6: {
-			string description;
-			cout << "Enter the description of the transaction to delete: ";
-			cin.ignore();
-			getline(cin, description);
-			FinananceManager::deleteTransaction(description);
-			break;
-		}
-		case 7:
-			screen::clear();
-			FinananceManager::suggestInvestmentsAndOptions();
-			system("pause");
-			break;
-		case 8:
-			cout << "Exiting..." << endl;
-			break;
-		default:
-			cout << "Invalid choice! Please try again." << endl;
-			break;
-		}
-	}
+        if (balance <= 0) {
+            cout << "\033[31m\nYou currently don't have a positive balance for investment in your accounts.\n\033[0m";
+            return;
+        }
+
+        const int colWidth = 22;
+        cout << "\033[96m                          ========= Investment Suggestions =========\n\033[0m";
+
+        cout << "\033[32m"
+            << setw(colWidth) << "Total Income"
+            << setw(colWidth) << "Total Expenses"
+            << setw(colWidth) << "Invested Money"
+            << setw(colWidth) << "Available Balance" << endl;
+
+        cout << fixed << setprecision(2) << "\033[32m"
+            << setw(colWidth) << ("$" + to_string(totalIncome).substr(0, to_string(totalIncome).find(".") + 3))
+            << setw(colWidth) << ("$" + to_string(totalExpenses).substr(0, to_string(totalExpenses).find(".") + 3))
+            << setw(colWidth) << ("$" + to_string(totalInvested).substr(0, to_string(totalInvested).find(".") + 3))
+            << setw(colWidth) << ("$" + to_string(balance).substr(0, to_string(balance).find(".") + 3))
+            << "\033[0m" << endl;
+        cout << "                          ------------------------------------------\n";
+
+        if (availableBalance < 10000) {
+            cout << "Emergency Fund: $" << fixed << setprecision(2) << (availableBalance * 0.8) << endl;
+            cout << "Low-risk Investment: $" << fixed << setprecision(2) << (availableBalance * 0.2) << endl;
+        }
+        else {
+            cout << "1. High-risk Investment: $ -> " << "\033[92m(38%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "2. Venture Capital: $ -> " << "\033[92m(36%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "3. Stock Market Investment: $ -> " << "\033[93m(28%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "4. Hedge Funds: $ -> " << "\033[93m(26%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "5. Medium-risk Investment: $ -> " << "\033[93m(24%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "6. Real Estate Investment: $ -> " << "\033[33m(20%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "7. Peer-to-Peer Lending: $ -> " << "\033[33m(18%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "8. Precious Metals (Gold/Silver): $ -> " << "\033[33m(14%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "9. Low-risk Investment: $ -> " << "\033[33m(12%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "10. Cryptocurrency Investment: $ -> " << "\033[91m(11%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "11. Bonds: $ -> " << "\033[91m(9.8%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "12. Mutual Funds: $ -> " << "\033[91m(9%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "13. Art and Collectibles: $ -> " << "\033[91m(8.4%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "14. Savings Account: $ -> " << "\033[91m(6.5%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "15. Carbon Credit Investment: $ -> " << "\033[91m(6%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "16. Emergency Fund: $ -> " << "\033[91m(3.6%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "17. Diversified Portfolio: $ -> " << "\033[91m(3.2%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "18. Retirement Account: $ -> " << "\033[91m(3%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "19. Investment in Health: $ -> " << "\033[91m(2%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "20. Investment in Education: $ -> " << "\033[91m(1.2%)\033[0m" << fixed << setprecision(2) << endl;
+        }
+
+        int x, m;
+        double bal;
+        string date;
+
+        cout << "\033[92mChoose What Is the Most Suitable case For You: \n\033[0m";
+        cin >> x;
+        cout << "Please Enter The Amount You Want To Invest\n";
+        cin >> bal;
+
+        while (bal > availableBalance || bal <= 0) {
+            if (bal <= 0) {
+                cout << "\033[31mInvestment amount must be greater than zero! Please enter a valid amount: \033[0m";
+            }
+            else {
+                cout << "\033[31mYou cannot invest more than your available balance of $"
+                    << fixed << setprecision(2) << availableBalance
+                    << "! Please enter a valid amount: \033[0m";
+            }
+            cin >> bal;
+        }
+
+        cout << "Please Enter The Duration In Months\n";
+        cin >> m;
+        date = Validator::validateDate();
+
+        // Save the investment to the file
+        Filemanager::saveInvestment(x, m, bal, date);
+
+        cout << "You Have Chosen Investment Option " << x << " with an amount of $" << fixed << setprecision(2) << bal << " for a duration of " << m << " months." << endl;
+        this_thread::sleep_for(chrono::seconds(1)); // 1 seconds delay
+        cout << "Your investment will be monitored and adjusted based on market conditions." << endl;
+        this_thread::sleep_for(chrono::milliseconds(800)); // 800 milliseconds delay
+        cout << "Please wait while we process your investment...\n";
+        this_thread::sleep_for(chrono::seconds(2)); // 2 seconds delay
+        cout << "Investment processed successfully!" << endl;
+
+        switch (x) {
+        case 1: {
+            double roi = InvestmentUtil::getMonthlyROI(1);
+            double profit = bal * roi * m;
+            cout << "High-risk Investment: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 2: {
+            double roi = InvestmentUtil::getMonthlyROI(2);
+            double profit = bal * roi * m;
+            cout << "Low-risk Investment: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 3: {
+            double roi = InvestmentUtil::getMonthlyROI(3);
+            double profit = bal * roi * m;
+            cout << "Medium-risk Investment: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 4: {
+            double roi = InvestmentUtil::getMonthlyROI(4);
+            double profit = bal * roi * m;
+            cout << "Cryptocurrency Investment: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 5: {
+            double roi = InvestmentUtil::getMonthlyROI(5);
+            double profit = bal * roi * m;
+            cout << "Diversified Portfolio: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 6: {
+            double roi = InvestmentUtil::getMonthlyROI(6);
+            double profit = bal * roi * m;
+            cout << "Savings Account: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 7: {
+            double roi = InvestmentUtil::getMonthlyROI(7);
+            double profit = bal * roi * m;
+            cout << "Retirement Account: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 8: {
+            double roi = InvestmentUtil::getMonthlyROI(8);
+            double profit = bal * roi * m;
+            cout << "Emergency Fund: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 9: {
+            double roi = InvestmentUtil::getMonthlyROI(9);
+            double profit = bal * roi * m;
+            cout << "Investment in Education: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 10: {
+            double roi = InvestmentUtil::getMonthlyROI(10);
+            double profit = bal * roi * m;
+            cout << "Investment in Health: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 11: {
+            double roi = InvestmentUtil::getMonthlyROI(11);
+            double profit = bal * roi * m;
+            cout << "Real Estate Investment: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 12: {
+            double roi = InvestmentUtil::getMonthlyROI(12);
+            double profit = bal * roi * m;
+            cout << "Bonds: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 13: {
+            double roi = InvestmentUtil::getMonthlyROI(13);
+            double profit = bal * roi * m;
+            cout << "Mutual Funds: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 14: {
+            double roi = InvestmentUtil::getMonthlyROI(14);
+            double profit = bal * roi * m;
+            cout << "Stock Market Investment: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 15: {
+            double roi = InvestmentUtil::getMonthlyROI(15);
+            double profit = bal * roi * m;
+            cout << "Precious Metals (Gold/Silver): $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 16: {
+            double roi = InvestmentUtil::getMonthlyROI(16);
+            double profit = bal * roi * m;
+            cout << "Peer-to-Peer Lending: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 17: {
+            double roi = InvestmentUtil::getMonthlyROI(17);
+            double profit = bal * roi * m;
+            cout << "Hedge Funds: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 18: {
+            double roi = InvestmentUtil::getMonthlyROI(18);
+            double profit = bal * roi * m;
+            cout << "Venture Capital: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 19: {
+            double roi = InvestmentUtil::getMonthlyROI(19);
+            double profit = bal * roi * m;
+            cout << "Art and Collectibles: $" << fixed << setprecision(2) << bal << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        case 20: {
+            double roi = InvestmentUtil::getMonthlyROI(20);
+            double profit = bal * roi * m;
+            cout << "Carbon Credit Investment: $" << fixed << setprecision(2) << bal << endl;
+            cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
+            break;
+        }
+        default:
+            cout << "Invalid choice! Please try again." << endl;
+            break;
+        }
+    }
+
+    static void displayFinancialSummary() {
+        double totalIncome = Income::calculateTotal();
+        double totalExpenses = Expense::calculateTotal();
+        double totalInvested = Filemanager::calculateTotalInvestments();
+        double balance = totalIncome - totalExpenses;
+        double availableBalance = balance - totalInvested;
+
+        vector<Investment> investments = Filemanager::readInvestments();
+        double totalExpectedProfit = 0.0;
+        double totalExpectedValue = 0.0;
+
+        for (const auto& investment : investments) {
+            double monthlyROI = InvestmentUtil::getMonthlyROI(investment.optionNumber);
+            double profit = investment.amount * monthlyROI * investment.durationMonths;
+            totalExpectedProfit += profit;
+            totalExpectedValue += (investment.amount + profit);
+        }
+
+        cout << "\n\033[1;36m========== FINANCIAL SUMMARY ==========\033[0m\n\n";
+        cout << "\033[32mTotal Income: \033[0m$" << fixed << setprecision(2) << totalIncome << endl;
+        cout << "\033[31mTotal Expenses: \033[0m$" << fixed << setprecision(2) << totalExpenses << endl;
+        cout << "\033[34mTotal Money Invested: \033[0m$" << fixed << setprecision(2) << totalInvested << endl;
+        cout << "\033[36mAvailable Balance: \033[0m$" << fixed << setprecision(2) << availableBalance << endl;
+        cout << "\033[33mTotal Expected Profit: \033[0m$" << fixed << setprecision(2) << totalExpectedProfit << endl;
+        cout << "\033[32mTotal Expected Value: \033[0m$" << fixed << setprecision(2) << totalExpectedValue << endl;
+
+        cout << "\n\033[1;35m=== Financial Distribution ===\033[0m\n";
+
+        double total = totalIncome;
+        if (total > 0) {
+            double expensePercentage = (totalExpenses / total) * 100;
+            double investedPercentage = (totalInvested / total) * 100;
+            double availablePercentage = (availableBalance / total) * 100;
+
+            cout << "\033[31mExpenses: \033[0m" << fixed << setprecision(1) << expensePercentage << "% ";
+            int barLength = static_cast<int>(expensePercentage / 2);
+            for (int i = 0; i < barLength; i++) cout << "-";
+            cout << ">";
+            cout << endl;
+
+            cout << "\033[34mInvested: \033[0m" << fixed << setprecision(1) << investedPercentage << "% ";
+            barLength = static_cast<int>(investedPercentage / 2);
+            for (int i = 0; i < barLength; i++) cout << "-";
+            cout << ">";
+            cout << endl;
+
+            cout << "\033[36mAvailable: \033[0m" << fixed << setprecision(1) << availablePercentage << "% ";
+            barLength = static_cast<int>(availablePercentage / 2);
+            for (int i = 0; i < barLength; i++) cout << "-";
+            cout << ">";
+            cout << endl;
+        }
+
+        cout << "\n\033[1;36m=====================================\033[0m\n";
+    }
 };
 
 class screen {
 public:
-	static void clear() {
-		system("cls");
-	}
+    static void clear() {
+        system("cls");
+    }
+};
+
+class UserInterface {
+public:
+    static void displayMenu() {
+        cout << "==================================" << endl;
+        cout << "\033[92m	Byte Masters!\033[0m" << endl;
+        cout << "\033[32mWelcome to the Finance Manager!\033[0m" << endl;
+        cout << "==================================" << endl;
+        cout << "\033[96m1. Add Income\033[0m" << endl;
+        cout << "\033[96m2. Add Expense\033[0m" << endl;
+        cout << "\033[96m3. Delete Transaction\033[0m" << endl;
+        cout << "\033[96m4. Investment Suggestions\033[0m" << endl;
+        cout << "\033[96m5. Stats & Reports\033[0m" << endl;
+        cout << "\033[31m6. Exit\033[0m" << endl;
+    }
+
+    static void displayLoading() {
+        cout << "\033[33mLoading...\033[0m" << endl;
+        for (int i = 0; i < 3; i++) {
+            cout << "\033[33m.\033[0m";
+            this_thread::sleep_for(chrono::milliseconds(500));
+        }
+        cout << endl;
+    }
+
+    static void displayStatsMenu() {
+        cout << "==================================" << endl;
+        cout << "\033[92m     Finance Statistics Menu\033[0m" << endl;
+        cout << "==================================" << endl;
+        cout << "\033[96m1. View Income\033[0m" << endl;
+        cout << "\033[96m2. View Expense\033[0m" << endl;
+        cout << "\033[96m3. View All Transactions\033[0m" << endl;
+        cout << "\033[96m4. View Investments\033[0m" << endl;
+        cout << "\033[96m5. Financial Summary\033[0m" << endl;
+        cout << "\033[96m6. Return to Main Menu\033[0m" << endl;
+        cout << "\033[32mEnter your choice: \033[0m";
+    }
+
+    static void handleStatsChoice() {
+        int statsChoice;
+        do {
+            screen::clear();
+            displayStatsMenu();
+            cin >> statsChoice;
+
+            switch (statsChoice) {
+            case 1:
+                screen::clear();
+                FinananceManager::viewIncome();
+                system("pause");
+                break;
+            case 2:
+                screen::clear();
+                FinananceManager::viewExpense();
+                system("pause");
+                break;
+            case 3:
+                screen::clear();
+                FinananceManager::viewAllTransactions();
+                system("pause");
+                break;
+            case 4:
+                screen::clear();
+                FinananceManager::displayInvestments();
+                system("pause");
+                break;
+            case 5:
+                screen::clear();
+                FinananceManager::displayFinancialSummary();
+                system("pause");
+                break;
+            case 6:
+                cout << "\033[33mReturning to the main menu...\033[0m" << endl;
+                this_thread::sleep_for(chrono::milliseconds(500));
+                break;
+            default:
+                cout << "\033[31mInvalid choice! Please try again.\033[0m" << endl;
+                system("pause");
+                break;
+            }
+        } while (statsChoice != 6);
+    }
+
+    static void handleUserChoice(int choice) {
+        switch (choice) {
+        case 1: {
+            string description, date, category;
+            double amount;
+
+            category = Validator::selectIncomeCategory();
+
+            cout << "\033[33mEnter income description: \033[0m";
+            cin.ignore();
+            getline(cin, description);
+
+            cout << "\033[32mEnter income amount: \033[0m";
+            cin >> amount;
+
+            date = Validator::validateDate();
+
+            FinananceManager::addIncome(description, amount, date, category);
+            break;
+        }
+        case 2: {
+            string description, date, category;
+            double amount;
+
+            category = Validator::selectExpenseCategory();
+
+            cout << "\033[33mEnter expense description: \033[0m";
+            cin.ignore();
+            getline(cin, description);
+
+            cout << "\033[32mEnter expense amount: \033[0m";
+            cin >> amount;
+
+            date = Validator::validateDate();
+
+            FinananceManager::addExpense(description, amount, date, category);
+            break;
+        }
+        case 3: {
+            string description;
+            cout << "\033[36mEnter the description of the transaction to delete: \033[0m";
+            cin.ignore();
+            getline(cin, description);
+            FinananceManager::deleteTransaction(description);
+            break;
+        }
+        case 4:
+            screen::clear();
+            FinananceManager::suggestInvestmentsAndOptions();
+            system("pause");
+            break;
+        case 5:
+            handleStatsChoice();
+            break;
+        case 6:
+            screen::clear();
+            cout << "\033[31mExit \033[0m" << endl;
+            break;
+        default:
+            cout << "\033[31mInvalid choice! Please try again.\033[0m" << endl;
+            break;
+        }
+    }
 };
 
 int main() {
-	int choice;
-	do {
-		screen::clear();
-		UserInterface::displayMenu();
-		cout << "Enter your choice: ";
-		cin >> choice;
-		UserInterface::handleUserChoice(choice);
-	} while (choice != 8);
-	return 0;
+    int choice;
+    do {
+        screen::clear();
+        UserInterface::displayMenu();
+        cout << "\033[32mEnter your choice: \033[0m";
+        cin >> choice;
+        UserInterface::handleUserChoice(choice);
+    } while (choice != 6);
+    return 0;
 }
