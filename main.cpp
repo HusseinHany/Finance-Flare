@@ -22,27 +22,27 @@ class InvestmentUtil {
 public:
     static double getMonthlyROI(int optionNumber) {
         switch (optionNumber) {
-        case 1: return 0.03;     // High Risk
-        case 2: return 0.01;     // Low Risk
-        case 3: return 0.02;     // Medium Risk
-        case 4: return 0.0167;   // Cryptocurrency
-        case 5: return 0.0075;   // Diversified Portfolio
-        case 6: return 0.0025;   // Savings Account
-        case 7: return 0.005;    // Retirement Account
-        case 8: return 0.003;    // Emergency Fund
-        case 9: return 0.001;    // Education
-        case 10: return 0.001;   // Health
-        case 11: return 0.015;   // Real Estate
-        case 12: return 0.005;   // Bonds
-        case 13: return 0.0075;  // Mutual Funds
-        case 14: return 0.02;    // Stock Market
-        case 15: return 0.01;    // Precious Metals
-        case 16: return 0.015;   // Peer-to-Peer Lending
-        case 17: return 0.02;    // Hedge Funds
-        case 18: return 0.03;    // Venture Capital
-        case 19: return 0.005;   // Art and Collectibles
-        case 20: return 0.007;   // Carbon Credit
-        default: return 0.01;    // Default 1% monthly return
+        case 1: return 0.38;     // High-risk Investment
+        case 2: return 0.36;     // Venture Capital
+        case 3: return 0.28;     // Stock Market Investment
+        case 4: return 0.26;     // Hedge Funds
+        case 5: return 0.24;     // Medium-risk Investment
+        case 6: return 0.20;     // Real Estate Investment
+        case 7: return 0.18;     // Peer-to-Peer Lending
+        case 8: return 0.14;     // Precious Metals (Gold/Silver)
+        case 9: return 0.12;     // Low-risk Investment
+        case 10: return 0.11;    // Cryptocurrency Investment
+        case 11: return 0.098;   // Bonds
+        case 12: return 0.09;    // Mutual Funds
+        case 13: return 0.084;   // Art and Collectibles
+        case 14: return 0.065;   // Savings Account
+        case 15: return 0.06;    // Carbon Credit Investment
+        case 16: return 0.036;   // Emergency Fund
+        case 17: return 0.032;   // Diversified Portfolio
+        case 18: return 0.03;    // Retirement Account
+        case 19: return 0.02;    // Investment in Health
+        case 20: return 0.012;   // Investment in Education
+        default: return 0.01;    // Default 1%
         }
     }
 };
@@ -54,7 +54,7 @@ public:
 
         cout << "\n\033[33m=== Select Income Category ===\033[0m\n";
         for (size_t i = 0; i < categories.size(); i++) {
-            cout << i + 1 << ". " << categories[i] << endl;
+            cout << "\033[33m" << i + 1 << ". " << "\033[0m" << categories[i] << endl;
         }
 
         int choice;
@@ -78,7 +78,7 @@ public:
 
         cout << "\n\033[33m=== Select Expense Category ===\033[0m\n";
         for (size_t i = 0; i < categories.size(); i++) {
-            cout << i + 1 << ". " << categories[i] << endl;
+            cout << "\033[33m" << i + 1 << ". " << "\033[0m" << categories[i] << endl;
         }
 
         int choice;
@@ -242,10 +242,8 @@ public:
     static void displayTransactions() {
         vector<Transaction> transactions = readTransactions();
         for (const auto& transaction : transactions) {
-            cout << "Description: " << transaction.getDescription() << endl;
-            cout << "Amount: $" << transaction.getAmount() << endl;
-            cout << "Date: " << transaction.getDate() << endl;
-            cout << "Category: " << transaction.getCategory() << endl;
+            cout << "\033[96m    ==== View All Transaction ==== \033[0m" << endl;
+            cout << "\033[92m" << "Transactions" << " | " << transaction.getDescription() << " | " << transaction.getAmount() << " | " << transaction.getDate() << " | " << transaction.getCategory() << "\033[0m" << endl;
             cout << "------------------------" << endl;
         }
     }
@@ -320,19 +318,19 @@ public:
             return;
         }
 
-        cout << "\n==== Your Investments ====\n";
+        cout << "\033[96m\n==== Your Investments ====\n\033[0m";
         for (const auto& investment : investments) {
-            cout << "\033[36mInvestment Option: \033[0m" << investment.optionNumber << endl;
-            cout << "\033[36mAmount Invested: \033[0m$" << fixed << setprecision(2) << investment.amount << endl;
-            cout << "\033[36mDuration: \033[0m" << investment.durationMonths << " months" << endl;
-            cout << "\033[36mDate Invested: \033[0m" << investment.date << endl;
+            cout << "\033[33mInvestment Option: \033[0m" << investment.optionNumber << endl;
+            cout << "\033[33mAmount Invested: \033[0m" << fixed << setprecision(2) << investment.amount << "$" << endl;
+            cout << "\033[33mDuration: \033[0m" << investment.durationMonths << " months" << endl;
+            cout << "\033[33mDate Invested: \033[0m" << investment.date << endl;
 
             double monthlyROI = InvestmentUtil::getMonthlyROI(investment.optionNumber);
             double expectedProfit = investment.amount * monthlyROI * investment.durationMonths;
 
-            cout << "\033[32mExpected Profit: \033[0m$" << fixed << setprecision(2) << expectedProfit << endl;
-            cout << "\033[32mTotal Expected Value: \033[0m$" << fixed << setprecision(2)
-                << (investment.amount + expectedProfit) << endl;
+            cout << "\033[32mExpected Profit: \033[0m" << fixed << setprecision(2) << expectedProfit << "$" << endl;
+            cout << "\033[32mTotal Expected Value: \033[0m" << fixed << setprecision(2)
+                << (investment.amount + expectedProfit) << "" << endl;
             cout << "------------------------" << endl;
         }
     }
@@ -358,11 +356,8 @@ public:
     }
 
     void display() const {
-        cout << "\033[33mIncome Transaction: \033[0m" << endl;
-        cout << "\033[36mDescription: \033[0m" << description << endl;
-        cout << "\033[36mAmount: \033[0m" << amount << "\033[36m $\033[0m" << endl;
-        cout << "\033[36mDate: \033[0m" << date << endl;
-        cout << "\033[36mCategory: \033[0m" << category << endl;
+        cout << "\033[96m    ==== Income Transaction ==== \033[0m" << endl;
+        cout << "\033[92m" << "Income " << " | " << description << " | " << amount << "$" << " | " << date << " | " << category << "\033[0m" << endl;
     }
 
     void saveToFile() {
@@ -372,7 +367,7 @@ public:
             file.close();
         }
         else {
-            cout << "Error opening file!" << endl;
+            cout << "\033[31mError opening file!\033[0m" << endl;
         }
     }
 
@@ -424,11 +419,8 @@ public:
     }
 
     void display() const {
-        cout << "\033[33mExpense Transaction:\033[0m" << endl;
-        cout << "\033[36mDescription: \033[0m" << description << endl;
-        cout << "\033[36mAmount: \033[0m" << amount << "\033[36m$\033[0m" << endl;
-        cout << "\033[36mDate: \033[0m" << date << endl;
-        cout << "\033[36mCategory: \033[0m" << category << endl;
+        cout << "\033[96m    ==== Expense Transaction ==== \033[0m" << endl;
+        cout << "\033[92m" << "Expense " << " | " << description << " | " << amount << "$" << " | " << date << " | " << category << "\033[0m" << endl;
     }
 
     void saveToFile() {
@@ -500,7 +492,7 @@ public:
         vector<Income> incomes = Income::readFromFile();
         for (const auto& income : incomes) {
             income.display();
-            cout << "------------------------" << endl;
+            cout << "----------------------------------" << endl;
         }
     }
 
@@ -508,7 +500,7 @@ public:
         vector<Expense> expenses = Expense::readFromFile();
         for (const auto& expense : expenses) {
             expense.display();
-            cout << "------------------------" << endl;
+            cout << "----------------------------------" << endl;
         }
     }
 
@@ -570,49 +562,55 @@ public:
             return;
         }
 
-        cout << "\n=== Investment Suggestions ===\n";
-        cout << "\033[32mYour Total Income: \033[0m" << fixed << setprecision(2) << totalIncome << "\033[32m$\033[0m" << endl;
-        cout << "\033[31mYour Total Expenses: \033[0m" << fixed << setprecision(2) << totalExpenses << "\033[31m$\033[0m" << endl;
-        cout << "\033[34mYour Total Invested Money: \033[0m" << fixed << setprecision(2) << totalInvested << "\033[34m$\033[0m" << endl;
-        cout << "\033[36mYour Available Balance: \033[0m" << fixed << setprecision(2) << availableBalance << "\033[36m$\033[0m" << endl;
+        const int colWidth = 22;
+        cout << "\033[96m                          ========= Investment Suggestions =========\n\033[0m";
+
+        cout << "\033[32m"
+            << setw(colWidth) << "Total Income"
+            << setw(colWidth) << "Total Expenses"
+            << setw(colWidth) << "Invested Money"
+            << setw(colWidth) << "Available Balance" << endl;
+
+        cout << fixed << setprecision(2) << "\033[32m"
+            << setw(colWidth) << ("$" + to_string(totalIncome).substr(0, to_string(totalIncome).find(".") + 3))
+            << setw(colWidth) << ("$" + to_string(totalExpenses).substr(0, to_string(totalExpenses).find(".") + 3))
+            << setw(colWidth) << ("$" + to_string(totalInvested).substr(0, to_string(totalInvested).find(".") + 3))
+            << setw(colWidth) << ("$" + to_string(balance).substr(0, to_string(balance).find(".") + 3))
+            << "\033[0m" << endl;
+        cout << "                          ------------------------------------------\n";
 
         if (availableBalance < 10000) {
             cout << "Emergency Fund: $" << fixed << setprecision(2) << (availableBalance * 0.8) << endl;
             cout << "Low-risk Investment: $" << fixed << setprecision(2) << (availableBalance * 0.2) << endl;
         }
         else {
-            cout << "Analyzing your balance. Please wait...\n";
-            this_thread::sleep_for(chrono::seconds(4)); // 4 seconds delay
-            cout << "1. High-risk Investment: $ -> (36%) " << fixed << setprecision(2) << endl;
-            this_thread::sleep_for(chrono::milliseconds(400));
-            cout << "2. Low-risk Investment: $ -> (12%) " << fixed << setprecision(2) << endl;
-            cout << "3. Medium-risk Investment: $ -> (24%) " << fixed << setprecision(2) << endl;
-            cout << "4. Cryptocurrency Investment: $ -> (9%) " << fixed << setprecision(2) << endl;
-            cout << "5. Diversified Portfolio: $ -> (3%) " << fixed << setprecision(2) << endl;
-            cout << "6. Savings Account: $ -> (6%) " << fixed << setprecision(2) << endl;
-            cout << "7. Retirement Account: $ -> (3%) " << fixed << setprecision(2) << endl;
-            cout << "8. Emergency Fund: $ -> (3.6%) " << fixed << setprecision(2) << endl;
-            this_thread::sleep_for(chrono::milliseconds(500));
-            cout << "9. Investment in Education: $ -> (1.2%) " << fixed << setprecision(2) << endl;
-            cout << "10. Investment in Health: $ -> (2%) " << fixed << setprecision(2) << endl;
-            cout << "11. Real Estate Investment: $ -> (18%) " << fixed << setprecision(2) << endl;
-            cout << "12. Bonds: $ -> (9%) " << fixed << setprecision(2) << endl;
-            cout << "13. Mutual Funds: $ -> (9%) " << fixed << setprecision(2) << endl;
-            cout << "14. Stock Market Investment: $ -> (24%) " << fixed << setprecision(2) << endl;
-            cout << "15. Precious Metals (Gold/Silver): $ -> (12%) " << fixed << setprecision(2) << endl;
-            this_thread::sleep_for(chrono::milliseconds(500));
-            cout << "16. Peer-to-Peer Lending: $ -> (18%) " << fixed << setprecision(2) << endl;
-            cout << "17. Hedge Funds: $ -> (24%) " << fixed << setprecision(2) << endl;
-            cout << "18. Venture Capital: $ -> (36%) " << fixed << setprecision(2) << endl;
-            cout << "19. Art and Collectibles: $ -> (8.4%) " << fixed << setprecision(2) << endl;
-            cout << "20. Carbon Credit Investment: $ -> (6%) " << fixed << setprecision(2) << endl;
+            cout << "1. High-risk Investment: $ -> " << "\033[92m(38%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "2. Venture Capital: $ -> " << "\033[92m(36%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "3. Stock Market Investment: $ -> " << "\033[93m(28%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "4. Hedge Funds: $ -> " << "\033[93m(26%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "5. Medium-risk Investment: $ -> " << "\033[93m(24%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "6. Real Estate Investment: $ -> " << "\033[33m(20%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "7. Peer-to-Peer Lending: $ -> " << "\033[33m(18%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "8. Precious Metals (Gold/Silver): $ -> " << "\033[33m(14%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "9. Low-risk Investment: $ -> " << "\033[33m(12%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "10. Cryptocurrency Investment: $ -> " << "\033[91m(11%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "11. Bonds: $ -> " << "\033[91m(9.8%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "12. Mutual Funds: $ -> " << "\033[91m(9%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "13. Art and Collectibles: $ -> " << "\033[91m(8.4%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "14. Savings Account: $ -> " << "\033[91m(6.5%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "15. Carbon Credit Investment: $ -> " << "\033[91m(6%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "16. Emergency Fund: $ -> " << "\033[91m(3.6%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "17. Diversified Portfolio: $ -> " << "\033[91m(3.2%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "18. Retirement Account: $ -> " << "\033[91m(3%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "19. Investment in Health: $ -> " << "\033[91m(2%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "20. Investment in Education: $ -> " << "\033[91m(1.2%)\033[0m" << fixed << setprecision(2) << endl;
         }
 
         int x, m;
         double bal;
         string date;
 
-        cout << "Choose What Is the Most Suitable case For You\n";
+        cout << "\033[92mChoose What Is the Most Suitable case For You: \n\033[0m";
         cin >> x;
         cout << "Please Enter The Amount You Want To Invest\n";
         cin >> bal;
@@ -828,35 +826,38 @@ public:
             totalExpectedValue += (investment.amount + profit);
         }
 
-        cout << "\n\033[1;36m========== FINANCIAL SUMMARY ==========\033[0m\n\n";
-        cout << "\033[32mTotal Income: \033[0m$" << fixed << setprecision(2) << totalIncome << endl;
-        cout << "\033[31mTotal Expenses: \033[0m$" << fixed << setprecision(2) << totalExpenses << endl;
-        cout << "\033[34mTotal Money Invested: \033[0m$" << fixed << setprecision(2) << totalInvested << endl;
-        cout << "\033[36mAvailable Balance: \033[0m$" << fixed << setprecision(2) << availableBalance << endl;
-        cout << "\033[33mTotal Expected Profit: \033[0m$" << fixed << setprecision(2) << totalExpectedProfit << endl;
-        cout << "\033[32mTotal Expected Value: \033[0m$" << fixed << setprecision(2) << totalExpectedValue << endl;
+        cout << "       \n\033[96m==========  Financial Summary ========== \033[0m\n\n";
+        cout << "\033[32mTotal Income: \033[0m" << fixed << setprecision(2) << totalIncome << "$" << endl;
+        cout << "\033[31mTotal Expenses: \033[0m" << fixed << setprecision(2) << totalExpenses << "$" << endl;
+        cout << "\033[33mTotal Money Invested: \033[0m" << fixed << setprecision(2) << totalInvested << "$" << endl;
+        cout << "\033[33mAvailable Balance: \033[0m" << fixed << setprecision(2) << availableBalance << "$" << endl;
+        cout << "\033[33mTotal Expected Profit: \033[0m" << fixed << setprecision(2) << totalExpectedProfit << "$" << endl;
+        cout << "\033[32mTotal Expected Value: \033[0m" << fixed << setprecision(2) << totalExpectedValue << "$" << endl;
 
-        cout << "\n\033[1;35m=== Financial Distribution ===\033[0m\n";
-
+        cout << "       \n\033[96m========== Financial Distribution ========== \033[0m\n";
+        cout << "\n";
         double total = totalIncome;
         if (total > 0) {
             double expensePercentage = (totalExpenses / total) * 100;
             double investedPercentage = (totalInvested / total) * 100;
             double availablePercentage = (availableBalance / total) * 100;
 
-            cout << "\033[31mExpenses: \033[0m" << fixed << setprecision(1) << expensePercentage << "% ";
+            cout << "\033[31mExpenses: \033[0m" << fixed << setprecision(1) << expensePercentage << " % ";
             int barLength = static_cast<int>(expensePercentage / 2);
-            for (int i = 0; i < barLength; i++) cout << "█";
+            for (int i = 0; i < barLength; i++) cout << "-";
+            cout << ">";
             cout << endl;
 
-            cout << "\033[34mInvested: \033[0m" << fixed << setprecision(1) << investedPercentage << "% ";
+            cout << "\033[33mInvested: \033[0m" << fixed << setprecision(1) << investedPercentage << " % ";
             barLength = static_cast<int>(investedPercentage / 2);
-            for (int i = 0; i < barLength; i++) cout << "█";
+            for (int i = 0; i < barLength; i++) cout << "-";
+            cout << ">";
             cout << endl;
 
-            cout << "\033[36mAvailable: \033[0m" << fixed << setprecision(1) << availablePercentage << "% ";
+            cout << "\033[32mAvailable: \033[0m" << fixed << setprecision(1) << availablePercentage << " % ";
             barLength = static_cast<int>(availablePercentage / 2);
-            for (int i = 0; i < barLength; i++) cout << "█";
+            for (int i = 0; i < barLength; i++) cout << "-";
+            cout << ">";
             cout << endl;
         }
 
@@ -874,10 +875,10 @@ public:
 class UserInterface {
 public:
     static void displayMenu() {
-        cout << "=================================" << endl;
+        cout << "==================================" << endl;
         cout << "\033[92m	Byte Masters!\033[0m" << endl;
         cout << "\033[32mWelcome to the Finance Manager!\033[0m" << endl;
-        cout << "=================================" << endl;
+        cout << "==================================" << endl;
         cout << "\033[96m1. Add Income\033[0m" << endl;
         cout << "\033[96m2. Add Expense\033[0m" << endl;
         cout << "\033[96m3. Delete Transaction\033[0m" << endl;
@@ -896,15 +897,15 @@ public:
     }
 
     static void displayStatsMenu() {
-        cout << "=================================" << endl;
+        cout << "==================================" << endl;
         cout << "\033[92m     Finance Statistics Menu\033[0m" << endl;
-        cout << "=================================" << endl;
-        cout << "\033[36m1. View Income\033[0m" << endl;
-        cout << "\033[36m2. View Expense\033[0m" << endl;
-        cout << "\033[36m3. View All Transactions\033[0m" << endl;
-        cout << "\033[36m4. View Investments\033[0m" << endl;
-        cout << "\033[36m5. Financial Summary\033[0m" << endl;
-        cout << "\033[36m6. Return to Main Menu\033[0m" << endl;
+        cout << "==================================" << endl;
+        cout << "\033[96m1. View Income\033[0m" << endl;
+        cout << "\033[96m2. View Expense\033[0m" << endl;
+        cout << "\033[96m3. View All Transactions\033[0m" << endl;
+        cout << "\033[96m4. View Investments\033[0m" << endl;
+        cout << "\033[96m5. Financial Summary\033[0m" << endl;
+        cout << "\033[96m6. Return to Main Menu\033[0m" << endl;
         cout << "\033[32mEnter your choice: \033[0m";
     }
 
