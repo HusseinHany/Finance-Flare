@@ -240,13 +240,15 @@ public:
     }
 
     static void displayTransactions() {
-        vector<Transaction> transactions = readTransactions();
-        for (const auto& transaction : transactions) {
-            cout << "\033[96m    ==== View All Transaction ==== \033[0m" << endl;
-            cout << "\033[92m" << "Transactions" << " | " << transaction.getDescription() << " | " << transaction.getAmount() << " | " << transaction.getDate() << " | " << transaction.getCategory() << "\033[0m" << endl;
-            cout << "------------------------" << endl;
-        }
-    }
+           vector<Transaction> transactions = readTransactions();
+           cout << "\033[96m    ==== View All Transactions ==== \033[0m" << endl;
+           for (const auto& transaction : transactions) {
+               cout << "\033[92m" << "Transactions" << " | " << transaction.getDescription() << " | " 
+                    << transaction.getAmount() << " | " << transaction.getDate() << " | " 
+                    << transaction.getCategory() << "\033[0m" << endl;
+               cout << "------------------------" << endl;
+           }
+       }
 
     static void deleteTransaction(const string& description) {
         vector<Transaction> transactions = readTransactions();
@@ -353,10 +355,12 @@ public:
         amount = a;
         date = dt;
         category = c;
+
+
     }
 
     void display() const {
-        cout << "\033[96m    ==== Income Transaction ==== \033[0m" << endl;
+      
         cout << "\033[92m" << "Income " << " | " << description << " | " << amount << "$" << " | " << date << " | " << category << "\033[0m" << endl;
     }
 
@@ -419,7 +423,6 @@ public:
     }
 
     void display() const {
-        cout << "\033[96m    ==== Expense Transaction ==== \033[0m" << endl;
         cout << "\033[92m" << "Expense " << " | " << description << " | " << amount << "$" << " | " << date << " | " << category << "\033[0m" << endl;
     }
 
@@ -490,6 +493,7 @@ public:
 
     static void viewIncome() {
         vector<Income> incomes = Income::readFromFile();
+        cout << "\033[96m    ==== Income Transaction ==== \033[0m" << endl;
         for (const auto& income : incomes) {
             income.display();
             cout << "----------------------------------" << endl;
@@ -498,6 +502,7 @@ public:
 
     static void viewExpense() {
         vector<Expense> expenses = Expense::readFromFile();
+        cout << "\033[96m    ==== Expense Transaction ==== \033[0m" << endl;
         for (const auto& expense : expenses) {
             expense.display();
             cout << "----------------------------------" << endl;
