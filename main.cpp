@@ -932,27 +932,27 @@ public:
             switch (statsChoice) {
             case 1:
                 screen::clear();
-                FinananceManager::viewIncome();
+                FinanceManager::viewIncome();
                 system("pause");
                 break;
             case 2:
                 screen::clear();
-                FinananceManager::viewExpense();
+                FinanceManager::viewExpense();
                 system("pause");
                 break;
             case 3:
                 screen::clear();
-                FinananceManager::viewAllTransactions();
+                FinanceManager::viewAllTransactions();
                 system("pause");
                 break;
             case 4:
                 screen::clear();
-                FinananceManager::displayInvestments();
+                FinanceManager::displayInvestments();
                 system("pause");
                 break;
             case 5:
                 screen::clear();
-                FinananceManager::displayFinancialSummary();
+                FinanceManager::displayFinancialSummary();
                 system("pause");
                 break;
             case 6:
@@ -984,7 +984,7 @@ public:
 
             date = Validator::validateDate();
 
-            FinananceManager::addIncome(description, amount, date, category);
+            FinanceManager::addIncome(description, amount, date, category);
             break;
         }
         case 2: {
@@ -1002,7 +1002,7 @@ public:
 
             date = Validator::validateDate();
 
-            FinananceManager::addExpense(description, amount, date, category);
+            FinanceManager::addExpense(description, amount, date, category);
             break;
         }
         case 3: {
@@ -1010,12 +1010,12 @@ public:
             cout << "\033[36mEnter the description of the transaction to delete: \033[0m";
             cin.ignore();
             getline(cin, description);
-            FinananceManager::deleteTransaction(description);
+            FinanceManager::deleteTransaction(description);
             break;
         }
         case 4:
             screen::clear();
-            FinananceManager::suggestInvestmentsAndOptions();
+            FinanceManager::suggestInvestmentsAndOptions();
             system("pause");
             break;
         case 5:
