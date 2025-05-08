@@ -475,7 +475,7 @@ public:
     }
 };
 
-class FinananceManager {
+class FinanceManager {
 public:
     static void addIncome(string description, double amount, string date, string category) {
         Income income(description, amount, date, category);
