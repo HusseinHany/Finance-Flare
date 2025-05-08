@@ -642,6 +642,16 @@ public:
 
         cout << "\033[92mChoose What Is the Most Suitable case For You: \n\033[0m";
         cin >> x;
+         while (x < 1 || x > 21 || cin.fail()) {
+	cin.clear();
+	cin.ignore(numeric_limits<streamsize>::max(), '\n');
+	cout << "\033[31mInvalid choice. Please try again: \033[0m";
+ }
+ if (x == 21) {
+        cout << "\033[33mReturning to main menu...\033[0m" << endl;
+        this_thread::sleep_for(chrono::seconds(1));
+        return;
+    }
         cout << "Please Enter The Amount You Want To Invest\n";
         cin >> bal;
 
@@ -832,6 +842,11 @@ public:
             cout << "Expected Profit (for " << m << " months): $" << fixed << setprecision(2) << profit << endl;
             break;
         }
+            case 21: {
+	cout << "\033[33mReturning to Main Menu...\033[0m" << endl;
+	this_thread::sleep_for(chrono::seconds(1)); // 1 seconds delay
+	break;
+  }
         default:
             cout << "Invalid choice! Please try again." << endl;
             break;
