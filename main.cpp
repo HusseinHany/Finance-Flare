@@ -8,6 +8,29 @@
 #include <cstdlib>
 using namespace std;
 
+const string investmentNames[] = {
+	"High-risk Investment",
+	"Venture Capital",
+	"Stock Market Investment",
+	"Hedge Funds",
+	"Medium-risk Investment",
+	"Real Estate Investment",
+	"Peer-to-Peer Lending",
+	"Precious Metals (Gold/Silver)",
+	"Low-risk Investment",
+	"Cryptocurrency Investment",
+	"Bonds",
+	"Mutual Funds",
+	"Art and Collectibles",
+	"Savings Account",
+	"Carbon Credit Investment",
+	"Emergency Fund",
+	"Diversified Portfolio",
+	"Retirement Account",
+	"Investment in Health",
+	"Investment in Education"
+};
+
 // Forward declaration of classes`
 class FinanceManager;
 // class to represent the type of record
@@ -322,6 +345,7 @@ public:
 
         cout << "\033[96m\n==== Your Investments ====\n\033[0m";
         for (int i = 0; i < count; i++) {
+           cout << "\033[33mInvestment Name: \033[0m" << investmentNames[investments[i].optionNumber - 1] << endl;
             cout << "\033[33mInvestment Option: \033[0m" << investments[i].optionNumber << endl;
             cout << "\033[33mAmount Invested: \033[0m" << fixed << setprecision(2) << investments[i].amount << "$" << endl;
             cout << "\033[33mDuration: \033[0m" << investments[i].durationMonths << " months" << endl;
