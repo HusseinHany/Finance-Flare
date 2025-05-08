@@ -889,8 +889,8 @@ class UserInterface {
 public:
     static void displayMenu() {
         cout << "==================================" << endl;
-        cout << "\033[92m	Byte Masters!\033[0m" << endl;
-        cout << "\033[32mWelcome to the Finance Manager!\033[0m" << endl;
+        cout << "\033[92m	Byte Masters\033[0m" << endl;
+        cout << "\033[32mWelcome to the Finance Manager\033[0m" << endl;
         cout << "==================================" << endl;
         cout << "\033[96m1. Add Income\033[0m" << endl;
         cout << "\033[96m2. Add Expense\033[0m" << endl;
