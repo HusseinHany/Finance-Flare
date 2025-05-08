@@ -188,11 +188,15 @@ struct Investment {
     double amount;
     string date;
 
-    Investment(int opt, int dur, double amt, string dt) : optionNumber(opt), durationMonths(dur), amount(amt), date(dt) {}
+    Investment() : optionNumber(0), durationMonths(0), amount(0.0), date("") {}
+
+    Investment(int opt, int dur, double amt, string dt)
+        : optionNumber(opt), durationMonths(dur), amount(amt), date(dt) {}
 };
 
 class Filemanager {
 public:
+    static const int MAX_INVESTMENTS = 100;
     static void saveTransaction(const Transaction& transaction) {
         ofstream file("transactions.txt", ios::app);
         if (file.is_open()) {
@@ -272,74 +276,76 @@ public:
         }
     }
 
-    static vector<Investment> readInvestments() {
-        vector<Investment> investments;
-        ifstream file("investments.txt");
-        if (file.is_open()) {
-            string line;
-            while (getline(file, line)) {
-                size_t pos = 0;
-                string token;
-                vector<string> tokens;
+    static int readInvestments(Investment investments[]) {
+    ifstream file("investments.txt");
+    int count = 0;
+    if (file.is_open()) {
+        string line;
+        while (getline(file, line) && count < MAX_INVESTMENTS) {
+            size_t pos = 0;
+            string token;
+            vector<string> tokens;
 
-                while ((pos = line.find(",")) != string::npos) {
-                    token = line.substr(0, pos);
-                    tokens.push_back(token);
-                    line.erase(0, pos + 1);
-                }
-                tokens.push_back(line); // Last token
-
-                if (tokens.size() == 4) {
-                    investments.emplace_back(
-                        stoi(tokens[0]),    // optionNumber
-                        stoi(tokens[1]),    // durationMonths
-                        stod(tokens[2]),    // amount
-                        tokens[3]           // date
-                    );
-                }
+            while ((pos = line.find(",")) != string::npos) {
+                token = line.substr(0, pos);
+                tokens.push_back(token);
+                line.erase(0, pos + 1);
             }
-            file.close();
+            tokens.push_back(line); // Last token
+
+            if (tokens.size() == 4) {
+                investments[count] = Investment(
+                    stoi(tokens[0]),    // optionNumber
+                    stoi(tokens[1]),    // durationMonths
+                    stod(tokens[2]),    // amount
+                    tokens[3]           // date
+                );
+                count++;
+            }
         }
-        else {
-            cout << "\033[31mInvestments file not found or could not be opened!\033[0m" << endl;
-        }
-        return investments;
+        file.close();
+    } else {
+        cout << "\033[31mInvestments file not found or could not be opened!\033[0m" << endl;
     }
+    return count;
+}
 
     static void viewInvestments() {
-        vector<Investment> investments = readInvestments();
+    Investment investments[MAX_INVESTMENTS];
+    int count = readInvestments(investments);
 
-        if (investments.empty()) {
-            cout << "\033[33mNo investments found!\033[0m" << endl;
-            return;
-        }
-
-        cout << "\033[96m\n==== Your Investments ====\n\033[0m";
-        for (const auto& investment : investments) {
-            cout << "\033[33mInvestment Option: \033[0m" << investment.optionNumber << endl;
-            cout << "\033[33mAmount Invested: \033[0m" << fixed << setprecision(2) << investment.amount << "$" << endl;
-            cout << "\033[33mDuration: \033[0m" << investment.durationMonths << " months" << endl;
-            cout << "\033[33mDate Invested: \033[0m" << investment.date << endl;
-
-            double monthlyROI = InvestmentUtil::getMonthlyROI(investment.optionNumber);
-            double expectedProfit = investment.amount * monthlyROI * investment.durationMonths;
-
-            cout << "\033[32mExpected Profit: \033[0m" << fixed << setprecision(2) << expectedProfit << "$" << endl;
-            cout << "\033[32mTotal Expected Value: \033[0m" << fixed << setprecision(2)
-                << (investment.amount + expectedProfit) << "" << endl;
-            cout << "------------------------" << endl;
-        }
+    if (count == 0) {
+        cout << "\033[33mNo investments found!\033[0m" << endl;
+        return;
     }
+
+    cout << "\033[96m\n==== Your Investments ====\n\033[0m";
+    for (int i = 0; i < count; i++) {
+        cout << "\033[33mInvestment Option: \033[0m" << investments[i].optionNumber << endl;
+        cout << "\033[33mAmount Invested: \033[0m" << fixed << setprecision(2) << investments[i].amount << "$" << endl;
+        cout << "\033[33mDuration: \033[0m" << investments[i].durationMonths << " months" << endl;
+        cout << "\033[33mDate Invested: \033[0m" << investments[i].date << endl;
+
+        double monthlyROI = InvestmentUtil::getMonthlyROI(investments[i].optionNumber);
+        double expectedProfit = investments[i].amount * monthlyROI * investments[i].durationMonths;
+
+        cout << "\033[32mExpected Profit: \033[0m" << fixed << setprecision(2) << expectedProfit << "$" << endl;
+        cout << "\033[32mTotal Expected Value: \033[0m" << fixed << setprecision(2)
+             << (investments[i].amount + expectedProfit) << "" << endl;
+        cout << "------------------------" << endl;
+    }
+}
 
     static double calculateTotalInvestments() {
-        vector<Investment> investments = readInvestments();
-        double totalInvested = 0.0;
+    Investment investments[MAX_INVESTMENTS];
+    int count = readInvestments(investments);
+    double totalInvested = 0.0;
 
-        for (const auto& investment : investments) {
-            totalInvested += investment.amount;
-        }
-        return totalInvested;
+    for (int i = 0; i < count; i++) {
+        totalInvested += investments[i].amount;
     }
+    return totalInvested;
+}
 };
 
 class Income : public Transaction {
@@ -848,7 +854,8 @@ public:
         double balance = totalIncome - totalExpenses;
         double availableBalance = balance - totalInvested;
 
-        vector<Investment> investments = Filemanager::readInvestments();
+        Investment investments[Filemanager::MAX_INVESTMENTS];
+        int count = Filemanager::readInvestments(investments);
         double totalExpectedProfit = 0.0;
         double totalExpectedValue = 0.0;
 
