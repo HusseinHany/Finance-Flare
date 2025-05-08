@@ -602,7 +602,8 @@ public:
         cout << "8. NFTs (Non-Fungible Tokens): $ -> " << "\033[33m(2%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.02) << endl;
         cout << "9. Collectibles: $ -> " << "\033[33m(2%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.02) << endl;
         cout << "10. Precious Metals: $ -> " << "\033[33m(5%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.05) << endl;
-        }
+         cout << "11. Return Main Menu " << "\033[33m(5%)\033[0m" << fixed << setprecision(2) << endl;
+	}
         else {
               cout << "\033[90mLoading\033[0m";
     for (int i = 0; i < 5; ++i) {
@@ -634,7 +635,9 @@ public:
             cout << "18. Retirement Account: $ -> " << "\033[91m(3%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "19. Investment in Health: $ -> " << "\033[91m(2%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "20. Investment in Education: $ -> " << "\033[91m(1.2%)\033[0m" << fixed << setprecision(2) << endl;
-        }
+            cout << "21. Return To Main Menu " << "\033[33m(5%)\033[0m" << fixed << setprecision(2) << endl;
+        
+	}
 
         int x, m;
         double bal;
@@ -647,7 +650,7 @@ public:
 	cin.ignore(numeric_limits<streamsize>::max(), '\n');
 	cout << "\033[31mInvalid choice. Please try again: \033[0m";
  }
- if (x == 21) {
+ if (x == 21 || x == 11) {
         cout << "\033[33mReturning to main menu...\033[0m" << endl;
         this_thread::sleep_for(chrono::seconds(1));
         return;
