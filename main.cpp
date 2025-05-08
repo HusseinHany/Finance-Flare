@@ -8,7 +8,6 @@
 #include <cstdlib>
 using namespace std;
 
-// Forward declarations
 class FinanceManager;
 
 class RecordType {
@@ -17,7 +16,6 @@ public:
     static const int expense = 1;
 };
 
-// Utility class for investment calculations
 class InvestmentUtil {
 public:
     static double getMonthlyROI(int optionNumber) {
@@ -165,7 +163,6 @@ protected:
     string category;
 
 public:
-    // Parameterized Constructor
     Transaction(string d, double a, string dt, string c) {
         description = d;
         amount = a;
@@ -173,7 +170,6 @@ public:
         category = c;
     }
 
-    // Setters and Getters
     void setDescription(string d) { description = d; }
     void setAmount(double a) { amount = a; }
     void setDate(string dt) { date = dt; }
@@ -218,15 +214,13 @@ public:
                 string token;
                 vector<string> tokens;
 
-                // Split the line by commas
                 while ((pos = line.find(",")) != string::npos) {
                     token = line.substr(0, pos);
                     tokens.push_back(token);
                     line.erase(0, pos + 1);
                 }
-                tokens.push_back(line); // Last token
+                tokens.push_back(line);
 
-                // Create a Transaction object if all fields are present
                 if (tokens.size() == 4) {
                     transactions.emplace_back(tokens[0], stod(tokens[1]), tokens[2], tokens[3]);
                 }
@@ -243,8 +237,8 @@ public:
            vector<Transaction> transactions = readTransactions();
            cout << "\033[96m    ==== All Transactions ==== \033[0m" << endl;
            for (const auto& transaction : transactions) {
-               cout << "\033[92m" << "Transactions" << " | " << transaction.getDescription() << " | " 
-                    << transaction.getAmount() << " | " << transaction.getDate() << " | " 
+               cout << "\033[92m" << "Transactions" << " | " << transaction.getDescription() << " | "
+                    << transaction.getAmount() << " | " << transaction.getDate() << " | "
                     << transaction.getCategory() << "\033[0m" << endl;
                cout << "------------------------" << endl;
            }
@@ -360,7 +354,7 @@ public:
     }
 
     void display() const {
-      
+
         cout << "\033[92m" << "Income " << " | " << description << " | " << amount << "$" << " | " << date << " | " << category << "\033[0m" << endl;
     }
 
@@ -414,7 +408,6 @@ public:
 
 class Expense : public Transaction {
 public:
-    // Constructor
     Expense(string d, double a, string dt, string c) : Transaction(d, a, dt, c) {
         description = d;
         amount = a;
@@ -437,7 +430,6 @@ public:
         }
     }
 
-    // Function to read expense transactions from file
     static vector<Expense> readFromFile() {
         vector<Expense> transactions;
         ifstream file("expense.txt");
@@ -480,14 +472,12 @@ public:
     static void addIncome(string description, double amount, string date, string category) {
         Income income(description, amount, date, category);
         income.saveToFile();
-        // Added: Save to transactions.txt as well
         Filemanager::saveTransaction(income);
     }
 
     static void addExpense(string description, double amount, string date, string category) {
         Expense expense(description, amount, date, category);
         expense.saveToFile();
-        // Added: Save to transactions.txt as well
         Filemanager::saveTransaction(expense);
     }
 
@@ -518,11 +508,8 @@ public:
     }
 
     static void deleteTransaction(string description) {
-        // Delete from transactions.txt
         Filemanager::deleteTransaction(description);
 
-        // Also need to delete from income.txt and expense.txt
-        // Delete from income.txt
         vector<Income> incomes = Income::readFromFile();
         ofstream incomeFile("income.txt");
         if (incomeFile.is_open()) {
@@ -538,7 +525,6 @@ public:
             cout << "\033[31mError opening income file!\033[0m" << endl;
         }
 
-        // Delete from expense.txt
         vector<Expense> expenses = Expense::readFromFile();
         ofstream expenseFile("expense.txt");
         if (expenseFile.is_open()) {
@@ -602,7 +588,7 @@ public:
         cout << "8. NFTs (Non-Fungible Tokens): $ -> " << "\033[33m(2%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.02) << endl;
         cout << "9. Collectibles: $ -> " << "\033[33m(2%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.02) << endl;
         cout << "10. Precious Metals: $ -> " << "\033[33m(5%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.05) << endl;
-         cout << "11. Return Main Menu " << "\033[33m(5%)\033[0m" << fixed << setprecision(2) << endl;
+        cout << "\033[96m11. Return To Main Menu \033[0m" << fixed << setprecision(2) << endl;
 	}
         else {
               cout << "\033[90mLoading\033[0m";
@@ -635,8 +621,8 @@ public:
             cout << "18. Retirement Account: $ -> " << "\033[91m(3%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "19. Investment in Health: $ -> " << "\033[91m(2%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "20. Investment in Education: $ -> " << "\033[91m(1.2%)\033[0m" << fixed << setprecision(2) << endl;
-            cout << "21. Return To Main Menu " << "\033[33m(5%)\033[0m" << fixed << setprecision(2) << endl;
-        
+            cout << "\033[96m21. Return To Main Menu \033[0m" << fixed << setprecision(2) << endl;
+
 	}
 
         int x, m;
@@ -674,7 +660,6 @@ public:
         cin >> m;
         date = Validator::validateDate();
 
-        // Save the investment to the file
         Filemanager::saveInvestment(x, m, bal, date);
 
         cout << "You Have Chosen Investment Option " << x << " with an amount of $" << fixed << setprecision(2) << bal << " for a duration of " << m << " months." << endl;
