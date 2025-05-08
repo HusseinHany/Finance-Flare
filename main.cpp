@@ -585,6 +585,13 @@ public:
         cout << "                          ------------------------------------------\n";
 
         if (availableBalance < 10000) {
+              cout << "\033[90mLoading\033[0m";
+    for (int i = 0; i < 5; ++i) {
+        cout << ".";
+        cout.flush();
+        this_thread::sleep_for(chrono::milliseconds(500));
+             }
+            cout << endl;
         cout << "1. Fractional Shares: $ -> " << "\033[92m(25%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.25) << endl;
         cout << "2. Micro-Investing Apps: $ -> " << "\033[92m(22%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.22) << endl;
         cout << "3. Cryptocurrency: $ -> " << "\033[93m(20%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.20) << endl;
