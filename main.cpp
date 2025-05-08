@@ -606,7 +606,7 @@ public:
              this_thread::sleep_for(chrono::seconds(1));
             cout << "6. Real Estate Investment: $ -> " << "\033[33m(20%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "7. Peer-to-Peer Lending: $ -> " << "\033[33m(18%)\033[0m" << fixed << setprecision(2) << endl;
-            cout << "8. Precious Metals (Gold/Silver): $ -> " << "\033[33m(14%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "8. Emergency Fund: $ -> " << "\033[33m(14%%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "9. Low-risk Investment: $ -> " << "\033[33m(12%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "10. Cryptocurrency Investment: $ -> " << "\033[91m(11%)\033[0m" << fixed << setprecision(2) << endl;
              this_thread::sleep_for(chrono::seconds(1));
@@ -616,7 +616,7 @@ public:
             cout << "14. Savings Account: $ -> " << "\033[91m(6.5%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "15. Carbon Credit Investment: $ -> " << "\033[91m(6%)\033[0m" << fixed << setprecision(2) << endl;
              this_thread::sleep_for(chrono::seconds(1));
-            cout << "16. Emergency Fund: $ -> " << "\033[91m(3.6%)\033[0m" << fixed << setprecision(2) << endl;
+            cout << "16. Precious Metals (Gold/Silver): $ -> " << "\033[91m(3.6%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "17. Diversified Portfolio: $ -> " << "\033[91m(3.2%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "18. Retirement Account: $ -> " << "\033[91m(3%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "19. Investment in Health: $ -> " << "\033[91m(2%)\033[0m" << fixed << setprecision(2) << endl;
