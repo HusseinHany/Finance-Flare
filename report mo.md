@@ -1,7 +1,6 @@
 # Financial Management System Project Report
 
 **Course:** C++ Programming Final Project  
-**Date:** May 8, 2025  
 **Team:** Byte Masters  
 **Team Members:** 6 Members  
 
