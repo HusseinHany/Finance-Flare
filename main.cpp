@@ -602,16 +602,19 @@ public:
             cout << "3. Stock Market Investment: $ -> " << "\033[93m(28%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "4. Hedge Funds: $ -> " << "\033[93m(26%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "5. Medium-risk Investment: $ -> " << "\033[93m(24%)\033[0m" << fixed << setprecision(2) << endl;
+             this_thread::sleep_for(chrono::seconds(1));
             cout << "6. Real Estate Investment: $ -> " << "\033[33m(20%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "7. Peer-to-Peer Lending: $ -> " << "\033[33m(18%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "8. Precious Metals (Gold/Silver): $ -> " << "\033[33m(14%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "9. Low-risk Investment: $ -> " << "\033[33m(12%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "10. Cryptocurrency Investment: $ -> " << "\033[91m(11%)\033[0m" << fixed << setprecision(2) << endl;
+             this_thread::sleep_for(chrono::seconds(1));
             cout << "11. Bonds: $ -> " << "\033[91m(9.8%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "12. Mutual Funds: $ -> " << "\033[91m(9%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "13. Art and Collectibles: $ -> " << "\033[91m(8.4%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "14. Savings Account: $ -> " << "\033[91m(6.5%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "15. Carbon Credit Investment: $ -> " << "\033[91m(6%)\033[0m" << fixed << setprecision(2) << endl;
+             this_thread::sleep_for(chrono::seconds(1));
             cout << "16. Emergency Fund: $ -> " << "\033[91m(3.6%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "17. Diversified Portfolio: $ -> " << "\033[91m(3.2%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "18. Retirement Account: $ -> " << "\033[91m(3%)\033[0m" << fixed << setprecision(2) << endl;
@@ -650,7 +653,7 @@ public:
         cout << "You Have Chosen Investment Option " << x << " with an amount of $" << fixed << setprecision(2) << bal << " for a duration of " << m << " months." << endl;
         this_thread::sleep_for(chrono::seconds(1)); // 1 seconds delay
         cout << "Your investment will be monitored and adjusted based on market conditions." << endl;
-        this_thread::sleep_for(chrono::milliseconds(800)); // 800 milliseconds delay
+         this_thread::sleep_for(chrono::seconds(1));//  1 seconds delay
         cout << "Please wait while we process your investment...\n";
         this_thread::sleep_for(chrono::seconds(2)); // 2 seconds delay
         cout << "Investment processed successfully!" << endl;
