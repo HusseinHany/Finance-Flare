@@ -585,8 +585,16 @@ public:
         cout << "                          ------------------------------------------\n";
 
         if (availableBalance < 10000) {
-            cout << "Emergency Fund: $" << fixed << setprecision(2) << (availableBalance * 0.8) << endl;
-            cout << "Low-risk Investment: $" << fixed << setprecision(2) << (availableBalance * 0.2) << endl;
+        cout << "1. Fractional Shares: $ -> " << "\033[92m(25%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.25) << endl;
+        cout << "2. Micro-Investing Apps: $ -> " << "\033[92m(22%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.22) << endl;
+        cout << "3. Cryptocurrency: $ -> " << "\033[93m(20%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.20) << endl;
+        cout << "4. Peer-to-Peer Lending: $ -> " << "\033[93m(10%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.10) << endl;
+        cout << "5. Robo-Advisors: $ -> " << "\033[93m(8%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.08) << endl;
+        cout << "6. Real Estate Crowdfunding: $ -> " << "\033[33m(6%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.06) << endl;
+        cout << "7. Dividend Stocks: $ -> " << "\033[33m(5%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.05) << endl;
+        cout << "8. NFTs (Non-Fungible Tokens): $ -> " << "\033[33m(2%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.02) << endl;
+        cout << "9. Collectibles: $ -> " << "\033[33m(2%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.02) << endl;
+        cout << "10. Precious Metals: $ -> " << "\033[33m(5%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.05) << endl;
         }
         else {
             cout << "1. High-risk Investment: $ -> " << "\033[92m(38%)\033[0m" << fixed << setprecision(2) << endl;
