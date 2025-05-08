@@ -241,7 +241,7 @@ public:
 
     static void displayTransactions() {
            vector<Transaction> transactions = readTransactions();
-           cout << "\033[96m    ==== View All Transactions ==== \033[0m" << endl;
+           cout << "\033[96m    ==== All Transactions ==== \033[0m" << endl;
            for (const auto& transaction : transactions) {
                cout << "\033[92m" << "Transactions" << " | " << transaction.getDescription() << " | " 
                     << transaction.getAmount() << " | " << transaction.getDate() << " | " 
