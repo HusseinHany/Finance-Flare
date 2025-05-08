@@ -9,7 +9,7 @@
 using namespace std;
 
 // Forward declarations
-class FinananceManager;
+class FinanceManager;
 
 class RecordType {
 public:
