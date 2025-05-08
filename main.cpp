@@ -597,6 +597,13 @@ public:
         cout << "10. Precious Metals: $ -> " << "\033[33m(5%)\033[0m" << fixed << setprecision(2) << (availableBalance * 0.05) << endl;
         }
         else {
+              cout << "\033[90mLoading\033[0m";
+    for (int i = 0; i < 5; ++i) {
+        cout << ".";
+        cout.flush();
+        this_thread::sleep_for(chrono::milliseconds(500));
+             }
+            cout << endl;
             cout << "1. High-risk Investment: $ -> " << "\033[92m(38%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "2. Venture Capital: $ -> " << "\033[92m(36%)\033[0m" << fixed << setprecision(2) << endl;
             cout << "3. Stock Market Investment: $ -> " << "\033[93m(28%)\033[0m" << fixed << setprecision(2) << endl;
