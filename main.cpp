@@ -1094,9 +1094,11 @@ public:
                 this_thread::sleep_for(chrono::milliseconds(100));
             }
             cout << endl;
-            cout << "\033[1;32mThank you for using the \033[1;36mFinance Manager\033[0m" << endl;
+            cout << "\033[96m              ==================================\033[0m\n";
+            cout << "\033[1;32m                   Thank You For Using The \n \033[1;36m                     Finance Manager\033[0m" << endl;
             this_thread::sleep_for(chrono::milliseconds(900));
-            cout << "\033[1;32mThis code is developed by \033[1;33mByte Masters Team\033[0m" << endl;
+            cout << "\033[1;32m                   This Code is Developed by \n \033[1;33m                    Byte Masters Team\033[0m" << endl;
+            cout << "\033[96m              ==================================\033[0m\n";
             this_thread::sleep_for(chrono::milliseconds(900));
 
             break;
