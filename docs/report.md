@@ -4,14 +4,12 @@
 **Team:** Byte Masters  
 **Team Members:** 6 Members  
 
-Hussein Hany - 42410002
-Nour Alaa - 42410282
-Mohamed Ismail - 42410359
-Ahmed Walid - 42410469
-Eslam Mohamed - 42410065
-Abdallah Aboghaly - 42410410
-
-
+- Hussein Hany
+- Nour Alaa
+- Mohamed Ismail
+- Ahmed Walid
+- Eslam Mohamed
+- Abdallah Aboghaly
 ## Executive Summary
 
 This report documents the design, implementation, and analysis of our Financial Management System—a console-based C++ application that enables users to track income, expenses, manage investments, and visualize financial data. The project demonstrates advanced object-oriented programming concepts through a comprehensive financial management solution. Our implementation satisfies all project requirements including inheritance relationships, arrays of objects, file operations, function overloading, and a multi-level menu system.

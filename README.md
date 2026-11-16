@@ -1,125 +1,198 @@
-Finance Management System – Project Report
-Introduction
+# Finance Flare
 
-This report presents a comprehensive analysis of the Finance Management System, a console-based application developed in C++. The main objective of the system is to enable users to manage their personal finances efficiently by tracking income and expenses, monitoring overall balance, and receiving basic investment suggestions.
+<p align="center">
+  <a href="https://husseinhany.github.io/#projects"><img src="docs/banner.svg" width="100%" alt="Finance Flare: a cash-flow chart where income and expense bars grow and a line traces the expected return."></a>
+</p>
 
-The system demonstrates the practical application of object-oriented programming (OOP) principles. It features class design, inheritance, encapsulation, and file handling. It simulates real-life financial management scenarios, aiming to improve users' financial literacy and decision-making. This application is particularly useful for students, employees, and anyone looking to gain control over their personal finances in a simple, accessible way.
-Project Objectives
+A personal finance manager for the terminal, written in C++. Record income and expenses, see where the money went, and test investment options with their expected returns. Everything is saved to plain text files, so your data is still there the next time you open it.
 
-The Finance Management System was designed with the following goals:
+Final project for the C++ OOP course by **Byte Masters**, a team of six: Hussein Hany, Nour Alaa, Mohamed Ismail, Ahmed Walid, Eslam Mohamed and Abdallah Aboghaly. This copy is forked from the [team repository](https://github.com/MOMGD/Finance-Flare) and adds the fixes and improvements listed below.
 
-    Allow users to record and categorize income and expenses.
+<p align="center">
+  <img src="docs/demo.svg" width="760" alt="Recording of Finance Flare: the animated title screen, adding a salary with a note, a wrong date being refused, investing $1,000 in the stock market option, and the list of all transactions with the income split as bars.">
+</p>
 
-    Store financial data persistently using simple text files.
+<p align="center"><sub>Real output from the program: the title screen, adding income, a refused date, an investment with its expected profit, and the summary.</sub></p>
 
-    Enable users to analyze financial patterns over time.
+## What it does
 
-    Automatically calculate total income, expenses, and balance.
+| Menu | What you can do |
+| --- | --- |
+| **Add Income** | Pick a category (Salary, Business, Investment, Gift, Other), add a description, an optional note, the amount and the date |
+| **Add Expense** | Pick one of 10 categories (Food, Housing, Transportation…), add a description, the amount and the date |
+| **Delete Transaction** | Remove a transaction by its description; the program says how many it removed |
+| **Investment Suggestions** | See income, expenses, money already invested and what is left. Under $10,000 you also get a suggested split across starter options. Pick one of 20 options, invest part of your available money and see the expected profit |
+| **Stats & Reports** | Income, expenses, all transactions in date order, your investments, and a financial summary with bars showing where the income went |
 
-    Offer basic investment suggestions based on savings levels.
+The main menu shows your money at a glance every time it opens: total in, total out and what is available.
 
-    Serve as a practical demonstration of object-oriented design using C++.
+## Interactive and animated
 
-By achieving these objectives, the system helps users gain a clearer understanding of their financial behavior and encourages responsible money management.
-System Overview
+- An animated title screen when the program starts
+- A live summary line on the main menu
+- A spinner while the investment suggestions are prepared
+- Bars that grow in the financial summary
+- Colours for income, expenses and warnings, and clear messages when an answer is not valid
 
-The system runs as a command-line program, using menus and user input prompts to guide interaction. It is built around modular components, with each module responsible for specific tasks such as income handling, expense tracking, balance calculation, and investment recommendation.
+The animations only run in a real terminal. When input or output is piped, for example in tests, the program runs at full speed.
 
-The software architecture uses an object-oriented approach for clarity and scalability. Core classes represent key financial concepts like transactions, income, and expenses. Data persistence is achieved using basic file I/O operations, ensuring that the user’s financial data is saved across sessions. Each entry is stored in categorized text files, making the system both human-readable and easy to back up.
-System Features
+## How it is built
 
-The key features of the Finance Management System include:
-1. Income Recording
+```mermaid
+classDiagram
+    direction LR
+    class Transaction {
+        <<abstract>>
+        #string description
+        #double amount
+        #string date
+        #string category
+        +type() int*
+        +display()
+        +toLine() string
+    }
+    class Income {
+        +type() int
+    }
+    class Expense {
+        +type() int
+    }
+    Transaction <|-- Income
+    Transaction <|-- Expense
 
-    Users can log income entries by providing the amount, source, category, and date.
+    class FinanceManager {
+        +addIncome(description, amount, date, category)
+        +addIncome(description, amount, date, category, note)
+        +addExpense(...)
+        +deleteTransaction(description)
+        +suggestInvestmentsAndOptions()
+        +displayFinancialSummary()
+    }
+    class FileManager {
+        +readIncome() vector~Income~
+        +readExpenses() vector~Expense~
+        +saveTransaction(Transaction)
+        +readInvestments(Investment[]) int
+        +saveInvestment(Investment)
+    }
+    class Investment {
+        +int optionNumber
+        +int durationMonths
+        +double amount
+        +string date
+    }
+    class InvestmentUtil {
+        +name(option) string
+        +yearlyRate(option) double
+        +expectedProfit(Investment) double
+    }
+    class UserInterface {
+        +splash()
+        +dashboard()
+        +displayMenu()
+        +handleUserChoice(choice)
+    }
+    class Validator {
+        +selectIncomeCategory() string
+        +selectExpenseCategory() string
+        +validateDate() string
+    }
+    class Input {
+        +readInt(prompt, lo, hi) int
+        +readAmount(prompt, max) double
+        +readText(prompt) string
+    }
+    UserInterface ..> FinanceManager
+    UserInterface ..> Validator
+    Validator ..> Input
+    FinanceManager ..> FileManager
+    FinanceManager ..> InvestmentUtil
+    FileManager ..> Investment
+    InvestmentUtil ..> Investment
+```
 
-    The data is saved in a text file specifically for income records.
+The course asked for these, and this is where each one is:
 
-2. Expense Recording
+| Requirement | Where |
+| --- | --- |
+| Inheritance | `Income` and `Expense` inherit from the abstract `Transaction` class |
+| Arrays of objects | Investments are read into an `Investment` array (up to 100) |
+| Static arrays | The 20 investment options and the starter split are constant arrays |
+| File operations | `FileManager` reads and writes the four data files |
+| Function overloading | `addIncome` with and without a note |
+| Multi-level menus | Main menu, Stats & Reports menu, and the investment options menu |
 
-    Expenses are added with similar details: amount, category, purpose, and date.
+### Menus
 
-    Stored separately from income in an expense file for easier management.
+```mermaid
+flowchart LR
+    S(["Title screen"]) --> M["Main menu<br/>with live summary"]
+    M --> A["Add income"] --> M
+    M --> E["Add expense"] --> M
+    M --> D["Delete transaction"] --> M
+    M --> I["Investment suggestions"] --> P{"Money<br/>available?"}
+    P -- no --> M
+    P -- yes --> O["Pick an option, amount,<br/>months and date"] --> R["Expected profit"] --> M
+    M --> T["Stats & Reports"] --> V["Income · expenses · all transactions<br/>investments · summary"] --> T
+    T --> M
+    M --> X(["Exit"])
+```
 
-3. Transaction Review
+## Investment returns
 
-    Users can view previously recorded income and expenses.
+Each of the 20 options has an expected yearly return, from 38% for high-risk investments down to 1.2% for education. The expected profit is simple interest:
 
-    A combined view option displays all transactions in chronological order.
+```
+expected profit = amount × yearly return × months ÷ 12
+```
 
-4. Balance Calculation
+For example, $1,000 in the stock market option (28% a year) for 12 months gives $280.00 of expected profit. The rates are fixed teaching values, not live market data.
 
-    The system calculates and displays the total income, total expenses, and current balance.
+## Build and run
 
-    Helps users understand their financial health at a glance.
+Any C++11 compiler works, on Windows, macOS or Linux.
 
-5. Investment Suggestions
+```bash
+g++ -std=c++11 -O2 main.cpp -o finance_flare
+./finance_flare
+```
 
-    Based on the balance, users receive investment advice categorized as:
+On Windows with Visual Studio, add `main.cpp` to an empty console project and run it. Colours are switched on automatically in the Windows console.
 
-        Low-risk (for low balances)
+## Data files
 
-        Medium-risk (for moderate savings)
+The program creates these files next to itself. Each line is one record, with fields separated by commas.
 
-        High-risk and diversified options (for high balances)
+| File | One line per | Fields |
+| --- | --- | --- |
+| `income.txt` | income | description, amount, date (DD/MM/YYYY), category |
+| `expense.txt` | expense | description, amount, date, category |
+| `transactions.txt` | income or expense | description, amount, date, category |
+| `investments.txt` | investment | option number, months, amount, date |
 
-    Users can simulate expected returns based on predefined growth rates.
+A comma typed in a description is saved as a semicolon, so it can't split a record. A damaged line is skipped instead of stopping the program.
 
-6. Transaction Deletion
+## Fixes and improvements in this fork
 
-    Transactions can be removed by specifying a unique identifier (e.g., description).
+- **No more freezes:** typing a letter at any menu or number prompt froze the program, and a wrong choice on the investment menu looped forever. Every answer is now read as a whole line and checked, and closed input exits cleanly.
+- **The right investment every time:** the option you picked, the name shown and the return used didn't match (choosing option 2 printed "Low-risk Investment" but used the Venture Capital rate). One table now holds each option's name and rate.
+- **Realistic returns:** the rates were applied per month, so 38% became 38% a month. They are now yearly rates, as the menu shows them.
+- **Correct balance:** the "Available Balance" column showed the balance before investments; it now subtracts them, and you can't invest money that is already invested.
+- **The income note is saved:** the note was asked for but never stored, and an extra `cin.ignore()` cut off its first letter.
+- **Under $10,000 the suggestions add up:** the starter split added up to 105%; it now adds up to 100%, and you can still choose any of the 20 options.
+- **Safe file reading:** a comma in a description broke the saved record, and a damaged number crashed the program.
+- **Works everywhere:** `system("cls")` and `system("pause")` only worked on Windows.
+- **Clearer numbers:** amounts show as `$1,234.56`, transaction lists are tables with totals, and "All Transactions" is sorted by date and labels income and expenses.
+- **New:** the animated title screen, the live summary on the main menu, the spinner and the growing bars.
 
-    The related file is updated automatically, maintaining data integrity.
+Tested with memory and undefined-behaviour checks (`-fsanitize=address,undefined`) on a scripted session covering every menu, wrong answers, impossible dates, closed input and damaged data files.
 
-7. Simple UI and Navigation
+## Files
 
-    Clear menus and prompts enhance usability.
-
-    Sleep functions and formatted text simulate loading and make the app feel responsive.
-
-Design and Implementation
-
-The system is designed using a modular class structure with clear separation of responsibilities. Each class focuses on a single aspect of the system:
-
-    Transaction (Base Class): Stores shared attributes such as amount, category, and date.
-
-    Income (Derived Class): Adds functions for managing income-related actions.
-
-    Expense (Derived Class): Similar to Income but specific to expense handling.
-
-    FileManager: Handles all file operations including reading, writing, and updating transaction records.
-
-    FinanceManager: Coordinates user input, invokes the appropriate modules, and ensures smooth system flow.
-
-This structure ensures the application remains extensible. For example, new transaction types like loans or budgets can be added without breaking existing functionality. Encapsulation also ensures sensitive data is only accessible where needed.
-
-The program uses standard C++ libraries like <fstream> and <iomanip>, ensuring that it runs smoothly on any system with a basic C++ compiler.
-Investment Module Analysis
-
-A standout feature of this application is its investment suggestion engine. After calculating the user’s remaining balance (income minus expenses), the system evaluates the user’s financial capacity and recommends appropriate investment paths.
-
-The logic is simple but impactful:
-
-    Low Balance (< 1000): Suggestions focus on savings, emergency funds, or government bonds.
-
-    Medium Balance (1000–5000): Introduces moderate-risk investments like mutual funds or ETFs.
-
-    High Balance (> 5000): Offers diverse options including real estate, cryptocurrency, and stock portfolios.
-
-The system simulates profit outcomes using static return rates. While these rates are simplified, they provide an educational introduction to concepts like risk, ROI, and asset diversification.
-
-Future improvements could integrate real-time financial APIs for live investment data or use machine learning models for dynamic financial advice.
-User Experience and Interaction
-
-Despite being console-based, the user interface is clean and intuitive. The application uses numbered menus and clear prompts to guide users through each process. Transaction entries are validated to prevent errors, and outputs are well-formatted for easy reading.
-
-Feedback messages and delays simulate real application responsiveness. This improves the user experience without adding unnecessary complexity.
-
-The system avoids financial jargon, making it accessible even to users with no background in finance. All concepts are explained in context, ensuring ease of understanding.
-Conclusion
-
-The Finance Management System is a well-designed C++ application that demonstrates core programming skills and addresses a practical real-life problem. It effectively combines data storage, user interaction, and financial logic in a compact and efficient form.
-
-While simple in nature, it covers essential features like transaction tracking, balance analysis, and investment education. Its modular and object-oriented structure makes it a solid base for future expansion.
-
-As a student-level project, it meets all academic expectations and also delivers real-world value. With additional development, this application can evolve into a more robust and comprehensive personal finance management tool.
+| File | What it is |
+| --- | --- |
+| `main.cpp` | The program |
+| `docs/report.md` | The team's project report |
+| `docs/overview.md` | A longer description of the system written for the course |
+| `docs/banner.svg`, `docs/demo.svg` | The animated banner and terminal recording in this README |
+| `drafts/` | Earlier versions kept from the team's development |

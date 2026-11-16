@@ -1,0 +1,9 @@
+# Data the program writes while it runs
+income.txt
+expense.txt
+transactions.txt
+investments.txt
+# Build output
+finance_flare
+finance_flare.exe
+*.o
